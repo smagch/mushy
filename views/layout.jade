@@ -3,5 +3,8 @@ html
   head
     title= title    
     link(rel='stylesheet', href='/stylesheets/style.css')
-    script(src='/javascripts/require.js', data-main='/javascripts/views/home/main.js')
+    - if (view) 
+      script(src='/javascripts/require.js', data-main='/javascripts/views/#{view}/main.js')
+    - else
+      script(src='/javascripts/require.js')
   body!= body

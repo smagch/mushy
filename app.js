@@ -48,8 +48,16 @@ app.configure('production', function(){
 app.get('/', function (req, res) {
    console.log('hoge'); 
    res.render('index', {
-      title : 'home' 
+      title : 'home'
+    , view : 'home'
    });
+});
+
+app.get('/popcorn', function (req, res) {
+    res.render('popcorn', {
+        title : 'popcorn test'
+      , view : 'popcorn'
+    });
 });
 
 app.listen(3000);
