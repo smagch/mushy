@@ -1,2 +1,26 @@
-h1= title
-p Welcome to #{title}
+#wrapper
+  header
+    h1 backbone social media test
+  #content
+    #search-form
+      ul#search-tab.clearfix
+        li#search-twitter.selected twitter    
+        li#search-facebook facebook                
+      ul#search-categories.clearfix        
+        li#search-twitter-category.active
+          span.button.selected timeline
+          span.button image          
+        li#search-categories-facebook.search-category
+      input#search-input
+    #search-content
+      ul#tweet-list
+script(id='template', type='text/template')
+  | <% _.each(results, function (result) { %>
+  |   <li class='clearfix'>
+  |     <a href='http://twitter.com/<%= result.from_user %>' >
+  |       <img src=<%=result.profile_image_url%> >
+  |     </a>
+  |     <div class='tweet-user'><%=result.from_user%></div>
+  |     <div class='tweet-text'><%= result.text %></div>
+  |   </li>
+  | <% }); %>        
