@@ -2,9 +2,10 @@
 html
   head
     title= title    
-    link(rel='stylesheet', href='/stylesheets/style.css')
     - if (view) 
+      link(rel='stylesheet', href='/stylesheets/#{view}.css')    
       script(src='/javascripts/require.js', data-main='/javascripts/views/#{view}/main.js')
     - else
+      link(rel='stylesheet', href='/stylesheets/style.css')
       script(src='/javascripts/require.js')
   body!= body
