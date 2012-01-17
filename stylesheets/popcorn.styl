@@ -25,82 +25,32 @@ header
   width 600px
   margin 0 auto
   
-#search-form
-  $active-background = #AAA  
-  border-radius(9px)
-  border 1px solid #999    
+input#text-input 
+  border-radius(4px)
+  background #999
+  margin 1em
+  padding .2em .4em
+  margin 0
+  border none
+  outline 0
+  font-size 2em
+  width 100%
+
+#text-container
+  width 100%
+  font-size 1.3em
+  line-height @font-size * 1.4
+  background #7E7E7E
+  border-radius(4px)
   padding 10px
-  margin-bottom 9px  
-  tab-height = 20px
-  background $active-background
-  #search-tab
-    padding .2em .2em 0
-    padding-bottom 0
-    margin 0
-    background #BCAAC0
-    border 1px solid #0F0F0F      
-    font-size 1.8em    
-    border-radius(9px)      
-    li
-      white-space nowrap
-      position relative
-      top 1px
-      display inline
-      cursor pointer
-      border-top-radius(4px)
-      background #995356      
-      border 1px solid #992927
-      border-bottom 0 !important
-      margin .2em 1px 0
-      padding 0 .6em      
-      &.selected
-        background $active-background
-        cursor default
-        padding-bottom 1px
-        margin-bootom 0              
-  #search-categories
-    min-height 20px
-    line-height 20px
-    margin 10px
-    padding 0
-    background $active-background
-    li
-      display none
-      .button
-        margin 0 4px        
-    li.active
-      display block    
-  
-#search-input
-  width 90%
-  font-size 2em  
-  padding 6px
-
-#search-content      
-  border-radius(9px)
-  border 1px solid #999
-  min-height 300px  
-  ul#tweet-list
-    margin 20px
-    padding 0
-    li
-      display block
-      list-style none
-      border 1px solid #D2D2D2
-      border-radius(4px)
-      margin 12px 0
-      padding 0      
-      a
-        float left
-        margin 10px
-      .tweet-user
-        font-weight bold
-        font-size 1.1em
-        margin 4px 0 2px 4px
-      .tweet-text
-        margin-right 0 4px 4px 4px
-
-
+  span
+    margin 0 .3em
+    background #AEAEAE
+    border-radius(2px)
+    padding 0 .3em
+    cursor pointer
+    &.editing
+      background #995B52
 
   
 .button
