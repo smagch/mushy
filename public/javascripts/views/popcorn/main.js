@@ -8,7 +8,6 @@ require.config({
     }
 });
 // make real time?
-// issue : browser tend to take two spans as one span.
 // TODO 3. and then build glue and sissor tool
 // TODO 4. and then make them work with popcorn
 // TODO 5. build slider and so on
@@ -23,45 +22,33 @@ $(document).ready(function () {
         var val = $(this).val();
         if(e.keyCode === 13 && val.length ) {
             console.log('enter');            
-            if($editingSpan) {
-                $editingSpan
-                  .removeClass('editing')
-                  .text(val);
-                $editingSpan = undefined;
+            if($editingSpan) {         
+                deselectSpan();
             } else {
                 var text = '<span>' + val + '</span>';
                 $('#text-container').append(text);
             }            
             $(this).val('');
             e.stopPropagation();
-        }
-        
+        }        
     });         
     /// how to deal with 
     $('#text-container').on('click', 'span', function (e) {
-        if((e.ctrlKey || e.shiftKey) && $('text-container span.editing').length !== 0) {
-            // TODO select between span.editing
-          
-        }      
-        $editingSpan = $(this);
-        $('#text-input').focus().val(          
-          $(this)
-            .addClass('editing')            
-            .text()
-        );
-        
-
-        
+        selectSpan.call(this);
         e.stopPropagation();
     });
     
     // reset functions
-    $(document).on('mouseup', function (e) {        
-        if($editingSpan && !$(e.target).is('input') ) {
+    $(document).on('mouseup', function (e) {
+        function isReset(target) {                                    
+            if(!$(target).is('input') && !$(target).parents('#video').length) {
+                return true;
+            }
+            return false;
+        }
+        if( $editingSpan && isReset(e.target)) {            
             console.log('document click');        
-            $editingSpan.removeClass('editing');
-            $('#text-input').val('');
-            $editingSpan = undefined;
+            deselectSpan();                        
         }
         e.stopPropagation();
     });
@@ -69,21 +56,55 @@ $(document).ready(function () {
     $(document).on('keydown', function (e) {
           if($editingSpan) {
               var map = {
-                  '40' : $editingSpan.next()
-                , '38' : $editingSpan.prev()                
-              }
-              // 38 up
-              // 40 down
-              // 39 = right cursor
-              // 37 = left cursor
+                  '40' : $editingSpan.next()// down
+                , '38' : $editingSpan.prev()// up                
+              }        
               var next = map[e.keyCode];
               if(next && next.length) {
-                  $editingSpan.removeClass('editing');
-                  $editingSpan = next.addClass('editing');
-                  $('#text-input').val($editingSpan.text());
+                  deselectSpan();
+                  selectSpan.call(next);
               }              
           }
     });
+    
+    // this span
+    function selectSpan() {
+        $editingSpan = $(this);
+        $('#text-input').focus().val(          
+          $(this)
+            .addClass('editing')            
+            .text()
+        );
+        var start = $editingSpan.data('start')
+          , end = $editingSpan.data('end')
+          ;
+        $('#time-input-start').val(start);
+        $('#time-input-end').val(end);
+        // if(start !=) {
+        //             youtube.currentTime(start);
+        //         }
+        
+    }
+    // this span
+    function deselectSpan() {
+        if(!$editingSpan) {
+            return;
+        }                        
+        $editingSpan
+          .data('start', $('#time-input-start').val())
+          .data('end', $('#time-input-end').val())
+          .removeClass('editing')
+          ;
+        $editingSpan = undefined;
+        $('#time-input-start').val('');
+        $('#time-input-end').val('');
+        $('#text-input').val('');
+    }
+    
+    // update start, end, text here
+    function updateData() {
+      
+    }
     
     var youtube = Popcorn.youtube( '#video', 'http://www.youtube.com/watch?v=CxvgCLgwdNk' );   
     $('#text-container > span[data-start][data-end]').each(function (index, el) {
@@ -93,28 +114,41 @@ $(document).ready(function () {
           , end = $el.data('end')
           ;
       
-        youtube.footnote({
-            start : start
-          , end : end
-          , text : $el.text()
-          , target : 'footnote'
-        });
+        // youtube.footnote({
+        //            start : start
+        //          , end : end
+        //          , text : $el.text()
+        //          , target : 'footnote'
+        //        })
+        var id = Math.random().toString(16).substr(2);
+        $el.attr('data-id', id);
         
         youtube.code({
             start : start
           , end : end
+          , id : id
           , onStart : function (options) {
-                console.log('onstart');
-                $el.addClass('highlight');        
+                console.log('onstart');                
+                //selectSpan.call(el);
+                var elem = $('#text-container > span[data-id=' + this._id + ']')[0]
+                selectSpan.call(elem);
             }
           , onEnd : function (options) {
                 console.log('onend');
-                $el.removeClass('highlight');
+                deselectSpan();
             }
         });
+        
+        
+        // youtube.listen('trackend', function (e) {
+        //            console.log('trackend');
+        //            
+        //        });
     });
     
     youtube.play();
+    window.youtube = youtube;
+    window.$ = $;
     // $('#ajust').on('click', function (e) {
     //        
     //    });
