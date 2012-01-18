@@ -22,8 +22,8 @@ $(document).ready(function () {
         var val = $(this).val();
         if(e.keyCode === 13 && val.length ) {
             console.log('enter');            
-            if($editingSpan) {         
-                deselectSpan();
+            if($editingSpan) {
+                endSelectSpan();
             } else {
                 var text = '<span>' + val + '</span>';
                 $('#text-container').append(text);
@@ -38,7 +38,7 @@ $(document).ready(function () {
         e.stopPropagation();
     });
     
-    // reset functions
+    // cursor reset functions
     $(document).on('mouseup', function (e) {
         function isReset(target) {                                    
             if(!$(target).is('input') && !$(target).parents('#video').length) {
@@ -46,9 +46,10 @@ $(document).ready(function () {
             }
             return false;
         }
+        
         if( $editingSpan && isReset(e.target)) {            
             console.log('document click');        
-            deselectSpan();                        
+            endSelectSpan();
         }
         e.stopPropagation();
     });
@@ -61,7 +62,7 @@ $(document).ready(function () {
               }        
               var next = map[e.keyCode];
               if(next && next.length) {
-                  deselectSpan();
+                  endSelectSpan();
                   selectSpan.call(next);
               }              
           }
@@ -75,8 +76,8 @@ $(document).ready(function () {
             .addClass('editing')            
             .text()
         );
-        var start = $editingSpan.data('start')
-          , end = $editingSpan.data('end')
+        var start = $editingSpan.attr('data-start')
+          , end = $editingSpan.attr('data-end')
           ;
         $('#time-input-start').val(start);
         $('#time-input-end').val(end);
@@ -87,31 +88,53 @@ $(document).ready(function () {
     }
     // this span
     function deselectSpan() {
-        if(!$editingSpan) {
-            return;
-        }                        
-        $editingSpan
-          .data('start', $('#time-input-start').val())
-          .data('end', $('#time-input-end').val())
-          .removeClass('editing')
-          ;
-        $editingSpan = undefined;
+        if($editingSpan) {
+            $editingSpan.removeClass('editing');
+            $editingSpan = undefined;
+        } else {
+            console.log('$editingSpan is null');
+        }
+ 
         $('#time-input-start').val('');
         $('#time-input-end').val('');
         $('#text-input').val('');
     }
     
-    // update start, end, text here
-    function updateData() {
-      
+    
+    // update start, end, text and then deselect
+    function endSelectSpan() {           
+        if(!$editingSpan) {
+            throw new Error('editingSpan should be exist');
+            return;
+        }
+        var start = $('#time-input-start').val()
+          , end = $('#time-input-end').val()
+          , text = $('#text-input').val()
+          , id = $editingSpan
+              .attr('data-start', start)
+              .attr('data-end', end)
+              .attr('data-id')
+          ;
+        
+        $editingSpan.text(text);
+        var trackObj = youtube.getTrackEvent(id);
+        if(trackObj) {
+            trackObj.start = start;
+            trackObj.end = end;
+        } else {
+            console.log('trackObj is null');
+        }
+        
+        
+        deselectSpan();
     }
     
     var youtube = Popcorn.youtube( '#video', 'http://www.youtube.com/watch?v=CxvgCLgwdNk' );   
     $('#text-container > span[data-start][data-end]').each(function (index, el) {
         console.log('index : ' + index);
         var $el = $(el)
-          , start = $el.data('start')
-          , end = $el.data('end')
+          , start = $el.attr('data-start')
+          , end = $el.attr('data-end')
           ;
       
         // youtube.footnote({
