@@ -27,6 +27,8 @@ console.log('loaded');
 // TODO - pollyfill for dataset nad classList
 // TODO - currently only span element
 // TODO - auto scroll
+// TODO - add option which enable cue beforehand, something like currentTime(start - option.***)
+// TODO - add option like withEditor?
 
 // senario
 // 1. load transcript file: row or url, container and file is needed
@@ -36,8 +38,6 @@ console.log('loaded');
 (function(Popcorn){
 	Popcorn.plugin('transcript', (function(){
 	  
-		var self = this;
-
 		function selectById(id) {
 			var elem = document.getElementById(id);
 			elem && elem.classList.add('editing');
@@ -47,8 +47,11 @@ console.log('loaded');
 			var elem = document.getElementById(id);
 			elem && elem.classList.remove('editing');
 		}
+		
+		function isValidTime(player, time) {
+			return !(time < 0 || time > player.duration() );
+		}
 
- 
 		return {
 			_setup : function (options) {
 				console.log('========_setup=======');				 
@@ -98,19 +101,10 @@ console.log('loaded');
 				  
 				  var start = trackEvent.start;
 				  console.log('start : ' + start);				  
-				  self.currentTime(start);				  	  
-				  // TODO - make sure select clicked span which has invalid start time
-				  //selectById(trackEvent._id);
-				  // if(start === -1) {
-				  //            self.trigger('trackstart', 
-				  //              Popcorn.extend({}, trackEvent, {
-				  //                 plugin: 'transcript',
-				  //                 type: 'trackstart'
-				  //               })
-				  //             );
-				  //          }
-				  
-				  
+				  self.currentTime(start);
+					if(!isValidTime(self, start)) {						
+						self.trigger('notimeselect', trackEvent );
+					}
 				}, false);
 				
 				container.addEventListener('keydown', function (e) {
@@ -121,17 +115,19 @@ console.log('loaded');
           }          
           var nextSpan = {
               '40' : currentSpans[0].nextElementSibling,    // down                
-              '38' : currentSpans[0].previousElementSibling
+              '38' : currentSpans[0].previousElementSibling // up
           }[e.keyCode];
+
           if(!nextSpan || !nextSpan.id) {
             return;
           }          
           var nextTrack = self.getTrackEvent(nextSpan.id);   
-          if( nextTrack ) {              
-            self.currentTime(nextTrack.start);
-            
-            // Make sure nextSpan select in case start time is invalid.
-            // selectById(nextSpan.id);
+          if( nextTrack ) {
+	          var start = nextTrack.start;
+						self.currentTime(nextTrack.start);
+						if(!isValidTime(self, start)) {						
+							self.trigger('notimeselect', nextTrack );
+						}       
           }          
 				}, false);									 
 			},
@@ -164,24 +160,35 @@ $(document).ready(function () {
         container : 'text-container'   
     });
     
-    // youtube.listen('trackstart', function (e) {
-    //   console.log('trackstart');      
-    //   //var text = $('#' + e._id).text();
-    //   //$('#text-input').val(text);      
-    // });
-    // 
     youtube.listen('trackend', function (e) {
       console.log('trackend');
 			// TODO - make sure if there is no running track for span,
 			$('#text-input').val('');
     }); 
+		var callbacks = [ ];
+		
     youtube.listen('trackchange', function (e) {
       console.log('trackchange');
-      $('#text-input').val($('#'+ e._id).text());
+			fillInputs(e);
+    });
+		
+		youtube.listen('notimeselect', function (e) {			
+			console.log('notimeselect');			
+			fillInputs(e);
+			$('#'+ e._id).addClass('editing');
+			callbacks.push(function () {
+				$('#'+e._id).removeClass('editing');
+			});
+		});
+		function fillInputs(e) {
+			while(callbacks.length) {
+				var fn = callbacks.shift();
+				fn();
+			}
+			$('#text-input').val($('#'+ e._id).text());
       $('#time-input-start').val(e.start);
 			$('#time-input-end').val(e.end);
-    });
-
+		}
     youtube.listen('playing', function (e) {
         console.log('playing');
     });
