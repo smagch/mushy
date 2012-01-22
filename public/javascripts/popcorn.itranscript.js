@@ -11,6 +11,8 @@
       var spans = container.getElementsByTagName('span'),
           containerId = container.id;
       
+      var models = [ ];
+      
       Popcorn.forEach( spans , function (span, index) {         
         var id = span.id = Popcorn.guid('itranscript'),
             start = span.getAttribute('data-start'),
@@ -26,7 +28,16 @@
           target : containerId,
           _natives : options._natives
         });
+        
+        models.push( {
+          start : start || -1,
+          end : end || -1,
+          id : id,
+          target : containerId
+        });
       });
+      
+      player.trigger( 'reset', models );
     }
     
     // Delegate event to span element

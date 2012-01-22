@@ -5,12 +5,13 @@
     //#ajust.button ajust span
     //#video(data-timeline-sources='/subtitles/drTyNDRnyxs.srt')
     #video
-    input#text-input(tabindex=1)
-    #time-input
-      label start
-      input#time-input-start(tabindex=2)
-      label end
-      input#time-input-end(tabindex=3)
+    #inputs
+      input#text-input(tabindex=1)
+      #time-input
+        label start
+        input#time-input-start(tabindex=2)
+        label end
+        input#time-input-end(tabindex=3)
     #text-container
       span(data-start=2, data-end=4) this is test line.
       span(data-start=4, data-end=5) I should do this by database later.
@@ -20,5 +21,7 @@ script(src='/javascripts/libs/jquery/jquery-1.7.1.js')
 script(src='/javascripts/libs/popcorn/popcorn-complete.js')
 //script(src='/javascripts/popcorn.parserSRT.js')
 script(src='/javascripts/popcorn.itranscript.js')
+script(src='/javascripts/libs/underscore/underscore.js')
+script(src='/javascripts/libs/backbone/backbone.js')
 script(src='/javascripts/views/popcorn/main.js')
       
