@@ -33,6 +33,7 @@
           start : start || -1,
           end : end || -1,
           id : id,
+          text : span.textContent,
           target : containerId
         });
       });
@@ -48,7 +49,7 @@
       }
       console.log('has id');
       var trackEvent = player.getTrackEvent( e.target.id );
-      if(!trackEvent) {
+      if( !trackEvent ) {
         return;
       }
       console.log('has trackEvent');
@@ -101,6 +102,14 @@
         }
         
         if( containers[ options.target ] ) {
+          console.dir( options );
+          options._id || options.id || ( options._id = Popcorn.guid('itranscript') );
+          this.trigger( 'add', {
+            start : options.start,
+            end : options.end,
+            text : options.text,
+            id : options._id
+          });
           return;
         }
         

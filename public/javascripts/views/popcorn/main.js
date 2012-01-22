@@ -37,8 +37,7 @@
       start : -1,
       end : -1,
       //_running : false,
-  		target : 'text-container',
-  		isEditing : false
+  		target : 'text-container'
     }
   });
   
@@ -53,7 +52,7 @@
     initialize : function() {
       this.model.bind( 'change', this.render, this );      
     },
-    template : _.template('<span data-start=<%= model.start %> data-end=<%= model.end %> ><%= text %></span>'),
+    template : _.template('<span data-start=<%= model.start %> data-end=<%= model.end %> ><%= model.text %></span>'),
     events : {
       
     },
@@ -72,15 +71,16 @@
     }
   });
   
-  var Tracks = new TrackCollection();
+  var Tracks = window.Tracks = new TrackCollection();
+  
   
   var TranscriptView = Backbone.View.extend({
     el : $('#text-container'),
     models : Tracks,
     initialize : function() {
       var self = this;
-      this.models.bind( 'change:start', this.changeSelect, this );      
-      this.models.bind( 'add', this.addSpan, this );        
+      //this.models.bind( 'change:start', this.changeSelect, this );      
+      this.models.bind( 'add', this.addTrack, this );
     },
     
     events : {
@@ -92,18 +92,22 @@
       console.dir(model);
     },
     
-    addSpan : function( model ) {
+    addTrack : function( model ) {
       // search where to insert
       console.log('addSpan');
       // var index = this.model.sortedIndex();
       // var span = new TrackView( model );
       // //this.el.after
+      var trackView = new TrackView( { model : model } );
+      //$( trackView.el ).appendTo( this.el );
+      this.el.append( trackView.render().el );
     }
        
   });
   
   var InputView = Backbone.View.extend({
     el : $('#inputs'),
+    _targetModelModel : undefined,
     textInput : $('#text-input'),
     startInput : $('#time-input-start'),
     endInput : $('#time-input-end'),
@@ -112,12 +116,10 @@
       'keyup #time-input-start' : 'updateStart',
       'kyeup #time-input-end' : 'updateEnd'
       //'focusout #time-input' : ''
-    },
-    
-    editingModel : undefined,
+    },        
     
     initialize : function() {
-      Tracks.bind( 'change:isEditing', this.render, this );
+      //Tracks.bind( 'change:isEditing', this.render, this );
     },
     
     isEditingTrack : function( track ) {
@@ -125,65 +127,92 @@
     },
     
     updateText : function() {
-            
-      var text = this.textInput.val();      
-      if( this.editingModel ) {
-        
-    		this.editingModel.set({ text : text });
-    		
-    	} else {
-    	  if( val !== '') {
-    	    // Create new model
-    	    var start = this.startInput.val(),
-    	        end = this.endInput.val(),
-    	        id = Popcorn.guid('itranscript'),
-    	        obj = {
-    	          start : start,
-    	          end : end,
-    	          id : id
-    	        };
-    	    
-    	    Tracks.add( new TrackModel( obj ) );    	    
-          //youtube.itranscript( obj );
-          //setCurrentTrackById( id );
-    	  }  	  
+      var val = this.textInput.val();
+      if( this._targetModel ) {
+        this._targetModel.set({ text : val });
+    	} else if ( val !== '') {
+    	  var start = this.startInput.val(),
+    	      end = this.endInput.val();
+    	  ( start === '' ) && ( start = -1 );
+    	  ( end === '' ) && ( end = -1 );    	          	  
+
+    	  Player.itranscript({
+    	    start : start,
+    	    end : end,
+    	    text : val,
+    	    target : 'text-container',
+    	    //id : Popcorn.guid('itranscript')// because option inside _setup has no _id
+    	  });    	      	            
       }
     },
     
+    // Move players currentTime
     updateStart : function() {
+      // if ( !this.player.paused() ) {
+      //         this.player.pause();
+      //       }
       
+      // var start = $('#time-input-start').val();
+      //       if ( this._currentTrack ) {
+      //         this._currentTrack.start = start;
+      //         
+      //         // also change Trackmodel
+      //         // this._currentTrack.sta
+      //         var currentModel = Tracks.get( this._currentTrack._id );
+      //         currentModel.set( { start : start } );
+      //       } 
+      //       this.player.currentTime( start );      
+      // 
+      this.updateTrack( { start : this.startInput.val() } );
     },
-    
+    // 
     updateEnd : function() {
-      
+      this.updateTrack( { end : this.endInput.val() } );
     },
     
     updateTrack : function( options ) {
-      if( this.editingModel ) {        
-        this.editingModel.set( options );
-        // trigger ??
-        //var 
-        //var currentModel = Tracks.get( this._currentTrack._id );
-        //currentModel.set( options );
+      if( this._targetModel ) {
+                
+        this._targetModel.set( options );
+                                        
+      } else if( options.text && options.text !== '' ) {
+
       }
     },    
     
-    render : function( model ) {
-      if( model.isEdit ) {
-        this.editingModel = model;
-        this.textInput.val( model.text );
-        this.startInput.val( model.start );
-        this.endInput.val( model.end );
-      } else {        
-        if( !this.editingModel ) {
-          this.textInput.val('');
-          // TODO ok?
-          this.startInput.val('');
-          this.endInput.val('');
-        }
+    setTarget : function( model ) {
+      console.log('render');
+      if( model ) {
+        console.log('fillInput');
+        this._targetModel = model;
+        this.textInput.val( model.get( 'text' ) );
+        this.startInput.val( model.get( 'start' ) );
+        this.endInput.val( model.get( 'end' ) );        
+      } 
+    },
+    
+    setTargetById : function( id ) {
+      var target = Tracks.get(id);
+      if( target ) {
+        this.setTarget( target );
+      } else {
+        throw new Error( 'there is no such id : ' + id );
       }
-    }        
+    },
+    
+    removeTarget : function( model ) {
+      if ( model === this._targetModel ) {
+        console.log('dropInputs');
+        this.textInput.val('');
+        // TODO ok?
+        this.startInput.val('');
+        this.endInput.val('');
+        this._targetModel = undefined;
+      }
+    }      
   });
+  
+  var Player = Popcorn.youtube( '#video', 'http://www.youtube.com/watch?v=CxvgCLgwdNk' );      
   
   var AppView = Backbone.View.extend({
         
@@ -191,6 +220,7 @@
     _currentId : undefined,
     player : undefined,
     inputView : new InputView,
+    transcriptView : new TranscriptView,
     initialize : function() {
       Popcorn.plugin.debug = true;
       var self = this;
@@ -210,15 +240,18 @@
       //         e.stopPropagation();
       //       });
       
-      var player = this.player = Popcorn.youtube( '#video', 'http://www.youtube.com/watch?v=CxvgCLgwdNk' );      
+      var player = this.player = Player;
       
       
       // TODO - it's possible to load differenct trackEvent.
       player.listen('trackend', function ( track ) {
         console.log( 'trackend' );       
         var trackModel = Tracks.get( track._id );
-        if( trackModel.get( 'isEditing' ) ) {
-          trackModel.set( { isEditing : false } );
+        if( trackModel ) {
+          //trackModel.set( { isEditing : false } );
+          self.inputView.removeTarget( trackModel );
+        } else {
+          console.dir( track );
         }              	
       });
       
@@ -226,9 +259,13 @@
         console.log('trackchange');      	
       	var trackModel = Tracks.get( track._id );
       	if( trackModel ) {
-      	  trackModel.set( { isEditing : true });
-      	}
-      	
+      	  //trackModel.set( { isEditing : true });
+      	  self.inputView.setTarget( trackModel );
+      	} else {
+      	  console.log('there is no such id');
+      	  console.dir( trackModel );
+      	  
+      	}      	
       });
       
       player.listen('notimeselect', function ( track ) {			
@@ -236,20 +273,28 @@
       	// TODO	
       });
       
-      Tracks.bind('add', function( trackModel ) {
-        var options = trackModel.toJSON();    
-        delete options['isEditing'];
-        player.addTrackEvent( options );
+      player.listen( 'add', function( track ) {
+        console.log('add');
+        Tracks.add( track );
+        console.dir( track );
+        self.inputView.setTargetById( track.id );
       });
       
+      // Tracks.bind('add', function( trackModel ) {
+      //         var options = trackModel.toJSON();    
+      //         delete options['isEditing'];
+      //         player.addTrackEvent( options );
+      //       });
+      
       player.listen( 'reset', function( tracks ) {
-        console.log('add');
-        Tracks.reset(tracks);
+        Tracks.reset( tracks );
       });
       
       player.itranscript({
        target : 'text-container',
-       withEditor : true
+       withEditor : true,
+       start : -1,
+       end : -1
        //subtitle : '/subtitles/drTyNDRnyxs.srt'// url
       });
       
@@ -260,34 +305,7 @@
     
 
     
-    // Move players currentTime
-    updateStart : function() {
-      if ( !this.player.paused() ) {
-        this.player.pause();
-      }
-      
-      var start = $('#time-input-start').val();
-      if ( this._currentTrack ) {
-        this._currentTrack.start = start;
-        
-        // also change Trackmodel
-        // this._currentTrack.sta
-        var currentModel = Tracks.get( this._currentTrack._id );
-        currentModel.set( { start : start } );
-      } 
-      this.player.currentTime( start );      
-      // 
-    },
-    // 
-    updateEnd : function() {
-      //if( )
-      if ( this._currentTrack ) {
-        var end = $('#time-input-end').val();
-        this._currentTrack.end = end;
-        var currentModel = Tracks.get( this._currentTrack._id );
-        currentModel.set( { end : end } );
-      }
-    },
+
     
     
     selectEdit : function() {
