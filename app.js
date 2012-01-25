@@ -47,7 +47,7 @@ app.configure('production', function(){
 
 app.get('/', function (req, res) {
    console.log('hoge'); 
-   res.render('index', {
+   res.render('home', {
       title : 'home'
     , view : 'home'
    });
