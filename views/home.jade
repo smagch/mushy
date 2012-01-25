@@ -12,9 +12,10 @@
           span.button image          
         li#search-categories-facebook.search-category
       input#search-input
-    #search-content
-      ul#tweet-list
-script(id='template', type='text/template')
+    #search-content        
+      ul#search-twitter-content
+      ul#search-facebook-content
+script(id='twitter-template', type='text/template')
   | <% _.each(results, function (result) { %>
   |   <li class='clearfix'>
   |     <a href='http://twitter.com/<%= result.from_user %>' >
@@ -23,4 +24,14 @@ script(id='template', type='text/template')
   |     <div class='tweet-user'><%=result.from_user%></div>
   |     <div class='tweet-text'><%= result.text %></div>
   |   </li>
-  | <% }); %>        
+  | <% }); %>
+script(id='facebook-template', type='text/template')        
+  | <% _.each( results, function(result) { %>
+  |   <li class='clearfix'>
+  |     <a href='http://facebook.com/profile.php?id=<%= result.from.id %>' >
+  |       <img src='https://graph.facebook.com/<%= result.from.id %>/picture'>
+  |     </a>
+  |     <div class='tweet-user'><%= result.from.name %></div>
+  |     <div class='tweet-text'><%= result.message %></div>
+  |   </li>
+  | <% }); %>
