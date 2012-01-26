@@ -67,9 +67,9 @@ header
     li
       display none
       .button
-        margin 0 4px        
-    li.active
-      display block    
+        margin 0 4px
+      &.active      
+        display block           
   
 #search-input
   width 90%
@@ -86,7 +86,7 @@ header
     display none
     &.active
       display block
-    li
+    li.tweet
       display block
       list-style none
       border 1px solid #D2D2D2
@@ -101,7 +101,16 @@ header
         font-size 1.1em
         margin 4px 0 2px 4px
       .tweet-text
-        margin-right 0 4px 4px 4px
+        margin 0 8px 8px 8px
+    li.image
+      display inline-block
+      vertical-align middle
+      width 130px
+      height 130px
+      img
+        max-width 120px
+        max-height 120px
+        display block
 
 
 
