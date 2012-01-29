@@ -13,11 +13,10 @@
         li#search-facebook-categories
       input#search-input
     #search-content        
-      ul#search-twitter-timeline-content.active initial timeline
-      ul#search-twitter-image-content initial image
-      ul#search-facebook-content initial facebook
+      ul#search-content-twitter-timeline.active initial timeline
+      ul#search-content-twitter-image initial image
+      ul#search-content-facebook initial facebook
 script(id='twitter-template', type='text/template')
-  | <% _.each(results, function (result) { %>
   |   <li class='tweet clearfix'>
   |     <a href='http://twitter.com/<%= result.from_user %>' >
   |       <img src=<%=result.profile_image_url%> >
@@ -25,9 +24,7 @@ script(id='twitter-template', type='text/template')
   |     <div class='tweet-user'><%=result.from_user%></div>
   |     <div class='tweet-text'><%= result.text %></div>
   |   </li>
-  | <% }); %>
 script(id='facebook-template', type='text/template')        
-  | <% _.each( results, function(result) { %>
   |   <li class='tweet clearfix'>
   |     <a href='http://facebook.com/profile.php?id=<%= result.from.id %>' >
   |       <img src='https://graph.facebook.com/<%= result.from.id %>/picture'>
@@ -35,12 +32,9 @@ script(id='facebook-template', type='text/template')
   |     <div class='tweet-user'><%= result.from.name %></div>
   |     <div class='tweet-text'><%= result.message %></div>
   |   </li>
-  | <% }); %>
 script(id='image-template', type='text/template')
-  | <% _.each( results, function( result ) { %>
   |   <li class='image'>
   |     <div>
   |       <img src='<%= result.small_thumbnail %>' >
   |     </div>
   |   </li>
-  | <% }); %>

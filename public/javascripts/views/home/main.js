@@ -10,124 +10,255 @@ require.config({
 require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
     $(document).ready(function () {
       
-    var QueryModel = Backbone.Model.extend({
-        doQuery : function( queryString ) {
-            if( queryString && 
-                this._query !== queryString && 
-                queryString.length > 0 &&
-                queryString.length < 50 ) {
-                this._query = queryString.replace(/\s+/g, '+');
-                this.fetch();
-            }            
-        }
-    });
+    var noop = function() {};
+    // templates
+    var Templates = (function(){
+      var Templates = { };
+      $("script[type='text/template']").each(function() {
+          var $this = $(this);
+          Templates[$this.id].template($this.html());
+      });
+      return Templates;
+    })();
     
-    var TweetModel = QueryModel.extend({
-        url : function () {
-            return "http://search.twitter.com/search.json?q=" + this._query + "&callback=?"
-        }     
-    });
-    
-    var TweetImageModel = QueryModel.extend({
-        url : function() {
-            return 'http://otter.topsy.com/searchdate.json?q=' + this._query + '&geocode=&type=image&perpage=16&callback=?';
-        }
-    });    
+    var Models = (function(){
+      
+        var M = { };
+        
+        M.TwitterModel = Backbone.Model.extend({});        
+        M.TwitterImageModel = Backbone.Model.extend({});
+        M.FacebookModel = Backbone.Model.extend({});
+        
+        return M;
+    })();
     
     
-    var TweetView = Backbone.View.extend({
-        el : $('#search-twitter-timeline-content')
-      , initialize : function ( options ) {
-            this.model.bind('change', this.render, this);
-        }
-            
-      , template : _.template($('#twitter-template').html())
-   
-      , render : function () {
-            console.log('render');
-            this.el.html( this.template({ results : this.model.get('results') }));
-        }        
-    });
+    var Collections = (function(){
+        var C = { };
+        C.QueryCollection = Backbone.Collection.extend({
+            doQuery : function( queryString ) {
+                if( queryString && 
+                    this._query !== queryString && 
+                    queryString.length > 0 &&
+                    queryString.length < 50 ) {
+                    this._query = queryString.replace(/\s+/g, '+');
+                    this.fetch();
+                }            
+            }
+          , nextUrl : undefined
+          , hasNext : function() {
+                return !!this.nextUrl;                        
+            }      
+          , next : function() {
+                if( this.nextUrl ) {
+                  this.url = nextUrl;
+                }
+            }
+        });
+        
+        C.TwitterCollection = C.QueryCollection.extend({
+          
+            model : Models.TwitterModel
+          , url : function () {
+                return "http://search.twitter.com/search.json?q=" + this._query + "&callback=?"
+            }
+          , parse : function( data ) {
+                var models = data.results;
+                this.nextUrl = data.next_page;
+                return models;
+            }
+        });
+        
+        C.TweetImageCollection = C.QueryCollection.extend({
+          
+            model : Models.TwitterImageModel
+          , url : function() {
+                return 'http://otter.topsy.com/searchdate.json?q=' + this._query + '&geocode=&type=image&perpage=16&callback=?';
+            }
+          , parse : function( data ) {
+                var models = data.response.list;
+                // TODO nextUrl
+                return models;
+            }
+        });
+
+        C.FacebookModel = C.QueryCollection.extend({
+          
+            model : Models.FacebookModel
+          , url : function() {
+                return 'https://graph.facebook.com/search?type=post&limit=20&q=' + this._query + '&offset=10&callback=?';            
+            }
+          , parse : function( data ) {
+                var models = data.data;
+                this.nextUrl = data.paging.next;
+                return models;
+            }
+        });
+        
+        return C;
+    })();
     
-    var TweetImageView = Backbone.View.extend({
-        el : $('#search-twitter-image-content')
-      , initialize : function() {
-            this.model.bind( 'change', this.render, this );
-        }
-      , template : _.template($('#image-template').html())
-      , render : function() {
-            console.log('render');
-            var results = this.model.get('response');
-            
-            this.el.html( this.template({ results : results.list }) );
-        }
-    });
+    
+    
+    var Views = (function(){
+        var V = {
+            Item : { }
+          , List : { }
+        };
+        
+        V.ItemBaseView = Backbone.View.extend({
+            initialize : function( options ) {
+                
+            }
+          , render : function() {
+                this.el.html(
+                    this.template({
+                        model : this.model.toJSON()
+                    })
+                );
+            }
+        });
+        
+        V.ListBaseView = Backbone.View.extend({
+            prefix : '#search-content'
+          , key : undefined
+          , itemClass : undefined
+          , initialize : function( options ) {
+                this.el = $( this.prefix + this.key );
+                if( !this.key || !this.el ) {
+                    throw new Error('key :' + this.key + ' is invalid');
+                }
+                
+                this.collection.bind( 'add', addItem, this );
+                //this.collection.bind( 'change')
+            }
+          , addItem : function( data ) {
+                function createItem( model ) {
+                    var view = new this.itemClass({ model : model });
+                    this.el.append( view.render().el );
+                }                
+
+                if( _.isArray( data ) ) {
+                    _.each( model, this.createItem, this );
+                } else {
+                    this.createItem( data );
+                }
+            }
+          // , render : function () {      
+          //         this.collection.each(function( model ) {
+          //             
+          //         });
+          //     }  
+        });
+        
+        V.Item.TwitterItemView = V.ItemBaseView.extend({
+            template : Templates['twitter-template']          
+        });
+        
+        V.Item.TwitterImageItemView = V.ItemBaseView.extend({
+            template : Templates['image-template']
+        });
+        
+        V.Item.FacebookItemView = V.ItemBaseView.extend({
+            template : Templates['facebook']
+        });
+        
+        V.List.TwitterView = V.ListBaseView.extend({
+            key : 'twitter-timeline'
+          , itemClass : V.Item.TwitterItemView  
+        });                
+                
+        V.List.TwitterImageView = V.ListBaseView.extend({
+            key : 'twitter-image'
+          , itemClass : V.Item.TwitterImageItemView
+        });       
+         
+        V.List.FacebookView = V.ListBaseView.extend({
+            key : 'facebook'     
+          , itemClass : V.Item.FacebookItemView
+        });
+        
+        
+        Views.ContentView = Backbone.View.extend({
+            id : '#search-content'
+          , initialize : function() {
+                this.el = $(this.id);                
+                this.views = { };               
+                this.changeView('twitter-timeline');
+            }
+          , changeView : function( key ) {                
+                if( this.views[key] ) {
+                    this.currentView = this.views[key];                  
+                } else {
+                    var targetClass = _.find( V.List, function( view, viewKey ) {
+                        return key === viewKey;
+                    });
+
+                    if( !targetClass ) {
+                        throw new Error('there is no such a view with key : ' + key );
+                        return;
+                    }
+
+                    this.currentView = this.views[key] = new targetClass();
+                }                                
+                
+                this.currentView.el
+                  .addClass('active')
+                  .siblings('.active').removeClass('active');
+            }
+        });
+        
+        
+        
+        return V;
+    })();
+    
 
     
-    var FacebookModel = QueryModel.extend({
-        url : function() {
-            return 'https://graph.facebook.com/search?type=post&limit=20&q=' + this._query + '&offset=10&callback=?';            
-        }    
-    });    
     
-    var FacebookView = Backbone.View.extend({
-        el : $('#search-facebook-content')
-      , initialize : function( options ) {
-            this.model.bind( 'change', this.render, this );
-        }
-      , events : {
-        
-        }
-      , template : _.template($('#facebook-template').html())
-      , render : function() {
-            console.log('render');
-            console.dir( this.model.get('data') );
-            this.el.html( this.template( { results : this.model.get('data') } ));
-        }
-    });
+    // var TabTracker = (function(){
+    //     var _key = 'twitter-timeline'
+    //       , categoryTempl = _.template('#search-<%= firstkey %>-categories > span.selected')  
+    //       , templates = [
+    //           _.template( '#search-<%= firstKey %>-categories' )
+    //         , _.template( '#search-<%= key %>-content' )
+    //       ];
+    //       
+    //     function update () {
+    //         var options = {
+    //             key : _key
+    //           , firstKey : _key.split('-')[0]
+    //         }
+    //         _.each( templates, function( template ) {
+    //             var selector = template( options );
+    //             console.log('selector : ' + selector);
+    //             $( selector ).addClass( 'active' )
+    //                 .siblings( '.active' ).removeClass( 'active' );
+    //         });
+    //     }                                                                          
+    //     return {
+    //         setKey : function( key ) {
+    //             var keys = [ key ];
+    //             var categorySelector = categoryTempl({ firstkey : key });
+    //             var category = $(categorySelector).text().replace( /\s+/g, '' );
+    //             ( category !== '' ) && ( keys.push( category ) );
+    //             
+    //             _key = keys.join('-');
+    //             console.dir(keys);
+    //             update();
+    //         }
+    //       , setCategory : function( category ) {
+    //             var keys = _key.split('-');
+    //             keys[1] = category;
+    //             _key = keys.join('-');
+    //             update();
+    //         }
+    //       , getKey : function() {                
+    //             return _key;
+    //         }
+    //     }        
+    // })();
     
-    var TabTracker = (function(){
-        var _key = 'twitter-timeline'
-          , categoryTempl = _.template('#search-<%= firstkey %>-categories > span.selected')  
-          , templates = [
-              _.template( '#search-<%= firstKey %>-categories' )
-            , _.template( '#search-<%= key %>-content' )
-          ];
-          
-        function update () {
-            var options = {
-                key : _key
-              , firstKey : _key.split('-')[0]
-            }
-            _.each( templates, function( template ) {
-                var selector = template( options );
-                console.log('selector : ' + selector);
-                $( selector ).addClass( 'active' )
-                    .siblings( '.active' ).removeClass( 'active' );
-            });
-        }                                                                          
-        return {
-            setKey : function( key ) {
-                var keys = [ key ];
-                var categorySelector = categoryTempl({ firstkey : key });
-                var category = $(categorySelector).text().replace( /\s+/g, '' );
-                ( category !== '' ) && ( keys.push( category ) );
-                
-                _key = keys.join('-');
-                console.dir(keys);
-                update();
-            }
-          , setCategory : function( category ) {
-                var keys = _key.split('-');
-                keys[1] = category;
-                _key = keys.join('-');
-                update();
-            }
-          , getKey : function() {                
-                return _key;
-            }
-        }        
-    })();
     // var TabModel = Backbone.Model.extend({
     // 
     //     set : function( attributes, options ) {
@@ -179,33 +310,20 @@ require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
     //     }
     // });
     
-    var AppView = Backbone.View.extend({
+    Views.AppView = Backbone.View.extend({
         el : $('#content')
       , initialize : function () {            
-
+            
             $('#search-categories').on('click', 'span', _.bind( this.categoryChange, this ) );
-
-            $('#facebook-list').css('display', 'block');
-            
-            
-            this.views['twitter-timeline'] = new TweetView({ model : this.models[ 'twitter-timeline' ]});
-            this.views['twitter-image'] = new TweetImageView({ model : this.models[ 'twitter-image'] });
-            this.views['facebook'] = new FacebookView({ model : this.models['facebook'] });
-            
-        }
-      , models : {
-            'twitter-timeline' : new TweetModel()
-          , 'twitter-image' : new TweetImageModel()
-          , 'facebook' : new FacebookModel()
-        }
-      , views : {  }
-      , currentModel : function() {
-            var key = TabTracker.getKey();
-            return this.models[key];
-        }
-      , currentView : function() {
-            return this.views[ this.currentKey ];
-        }
+            $('#facebook-list').css('display', 'block');            
+        }        
+      // , currentModel : function() {
+      //        var key = TabTracker.getKey();
+      //        return this.models[key];
+      //    }
+      //  , currentView : function() {
+      //        return this.views[ this.currentKey ];
+      //    }
       , events : {
             'keyup #search-input' : 'query'
           , 'click #search-tab > li' : 'tabChange'

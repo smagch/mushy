@@ -1,11 +1,7 @@
 !!!
 html
   head
-    title= title    
-    - if (view) 
-      link(rel='stylesheet', href='/stylesheets/#{view}.css')    
-      script(src='/javascripts/require.js', data-main='/javascripts/views/#{view}/main.js')
-    - else
-      link(rel='stylesheet', href='/stylesheets/style.css')
-      script(src='/javascripts/require.js')
+    title= title
+    link(rel='stylesheet', href='/stylesheets/#{view}.css')    
+    script(src='/javascripts/require.js', data-main='/javascripts/views/#{view}/main.js')
   body!= body
