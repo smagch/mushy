@@ -2,39 +2,39 @@
   header
     h1 backbone social media test
   #content
-    #search-form
-      ul#search-tab.clearfix
-        li#search-twitter.selected twitter    
-        li#search-facebook facebook                
-      ul#search-categories.clearfix        
-        li#search-twitter-categories.active
-          span.button.selected timeline
-          span.button image          
-        li#search-facebook-categories
-      input#search-input
+    #search-tab
+      ul                
+        li
+          a(href='#search-categories-twitter') twitter
+        li
+          a(href='#search-categories-facebook') facebook
+      #search-categories-twitter
+        span.button.selected timeline
+        span.button image          
+      #search-categories-facebook            
+    input#search-input
     #search-content        
       ul#search-content-twitter-timeline.active initial timeline
       ul#search-content-twitter-image initial image
       ul#search-content-facebook initial facebook
 script(id='twitter-template', type='text/template')
-  |   <li class='tweet clearfix'>
-  |     <a href='http://twitter.com/<%= result.from_user %>' >
-  |       <img src=<%=result.profile_image_url%> >
+  |     <a href='http://twitter.com/<%= model.from_user %>' >
+  |       <img src=<%= model.profile_image_url %> >
   |     </a>
-  |     <div class='tweet-user'><%=result.from_user%></div>
-  |     <div class='tweet-text'><%= result.text %></div>
-  |   </li>
+  |     <div class='tweet-user'><%=model.from_user%></div>
+  |     <div class='tweet-text'><%= model.text %></div>
 script(id='facebook-template', type='text/template')        
-  |   <li class='tweet clearfix'>
-  |     <a href='http://facebook.com/profile.php?id=<%= result.from.id %>' >
-  |       <img src='https://graph.facebook.com/<%= result.from.id %>/picture'>
+  |     <a href='http://facebook.com/profile.php?id=<%= model.from.id %>' >
+  |       <img src='https://graph.facebook.com/<%= model.from.id %>/picture'>
   |     </a>
-  |     <div class='tweet-user'><%= result.from.name %></div>
-  |     <div class='tweet-text'><%= result.message %></div>
-  |   </li>
+  |     <div class='tweet-user'><%= model.from.name %></div>
+  |     <div class='tweet-text'><%= model.message %></div>
 script(id='image-template', type='text/template')
-  |   <li class='image'>
   |     <div>
-  |       <img src='<%= result.small_thumbnail %>' >
+  |       <img src='<%= model.small_thumbnail %>' >
   |     </div>
-  |   </li>
+script(src='/javascripts/libs/jquery/jquery-1.7.1.js')
+script(src='/javascripts/jquery-ui-1.8.17.custom.min.js')
+script(src='/javascripts/libs/underscore/underscore.js')
+script(src='/javascripts/libs/backbone/backbone.js')
+script(src='/javascripts/views/home/main.js')

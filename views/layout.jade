@@ -2,6 +2,7 @@
 html
   head
     title= title
-    link(rel='stylesheet', href='/stylesheets/#{view}.css')    
-    script(src='/javascripts/require.js', data-main='/javascripts/views/#{view}/main.js')
+    link(rel='stylesheet', href='/stylesheets/#{view}.css')
+    link(rel='stylesheet', href='/stylesheets/jquery-ui-1.8.17.custom.css')   
+    //script(src='/javascripts/require.js', data-main='/javascripts/views/#{view}/main.js')
   body!= body

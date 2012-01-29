@@ -1,24 +1,27 @@
-require.config({
-    'baseUrl' : '/javascripts'
-  , 'paths' : {
-        'jQuery' : 'libs/jquery/main'
-      , 'underscore' : 'libs/underscore/underscore'
-      , 'backbone' : 'libs/backbone/main'
-    }
-});
+// require.config({
+//     'baseUrl' : '/javascripts'
+//   , 'paths' : {
+//         'jQuery' : 'libs/jquery/main'
+//       , 'underscore' : 'libs/underscore/underscore'
+//       , 'backbone' : 'libs/backbone/main'
+//     }
+// });
 
-require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
-    $(document).ready(function () {
+//require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
+(function($, _, Backbone){
+  
+  
+  
+
       
     var noop = function() {};
     // templates
     var Templates = (function(){
-      var Templates = { };
+      var T = { };
       $("script[type='text/template']").each(function() {
-          var $this = $(this);
-          Templates[$this.id].template($this.html());
+          T[this.id] = _.template($(this).html());
       });
-      return Templates;
+      return T;
     })();
     
     var Models = (function(){
@@ -36,14 +39,26 @@ require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
     var Collections = (function(){
         var C = { };
         C.QueryCollection = Backbone.Collection.extend({
-            doQuery : function( queryString ) {
-                if( queryString && 
-                    this._query !== queryString && 
-                    queryString.length > 0 &&
-                    queryString.length < 50 ) {
-                    this._query = queryString.replace(/\s+/g, '+');
-                    this.fetch();
-                }            
+            // doQuery : function( queryString ) {
+            //        if( queryString && 
+            //            this._query !== queryString && 
+            //            queryString.length > 0 &&
+            //            queryString.length < 50 ) {
+            //            this._query = queryString
+            //            this.fetch();
+            //        }            
+            //    }
+            query : function(queryString) {
+                if(!queryString) {
+                    return this._query;
+                }
+                if( this._query === queryString ) {
+                    return;
+                }
+                
+                this._query = queryString;
+                this.fetch();
+                
             }
           , nextUrl : undefined
           , hasNext : function() {
@@ -56,7 +71,7 @@ require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
             }
         });
         
-        C.TwitterCollection = C.QueryCollection.extend({
+        C['twitter-timeline'] = C.QueryCollection.extend({
           
             model : Models.TwitterModel
           , url : function () {
@@ -69,7 +84,7 @@ require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
             }
         });
         
-        C.TweetImageCollection = C.QueryCollection.extend({
+        C['twitter-image'] = C.QueryCollection.extend({
           
             model : Models.TwitterImageModel
           , url : function() {
@@ -82,15 +97,15 @@ require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
             }
         });
 
-        C.FacebookModel = C.QueryCollection.extend({
+        C['facebook'] = C.QueryCollection.extend({
           
             model : Models.FacebookModel
           , url : function() {
                 return 'https://graph.facebook.com/search?type=post&limit=20&q=' + this._query + '&offset=10&callback=?';            
             }
           , parse : function( data ) {
-                var models = data.data;
-                this.nextUrl = data.paging.next;
+                var models = data.data;                
+                //this.nextUrl = data.paging.next;
                 return models;
             }
         });
@@ -107,104 +122,121 @@ require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
         };
         
         V.ItemBaseView = Backbone.View.extend({
-            initialize : function( options ) {
+            tagName : 'li'
+          , initialize : function( options ) {
                 
             }
           , render : function() {
-                this.el.html(
+                $(this.el).html(
                     this.template({
                         model : this.model.toJSON()
                     })
                 );
+                return this;
             }
         });
         
+        V.Item['twitter-timeline'] = V.ItemBaseView.extend({
+            template : Templates['twitter-template']
+          , className : 'clearfix tweet'
+        });
+        
+        V.Item['twitter-image'] = V.ItemBaseView.extend({
+            template : Templates['image-template']
+          , className : 'image'
+        });
+        
+        V.Item['facebook'] = V.ItemBaseView.extend({
+            template : Templates['facebook-template']
+          , className : 'clearfix tweet'
+        });
+        
+        
         V.ListBaseView = Backbone.View.extend({
-            prefix : '#search-content'
+            prefix : 'search-content'
           , key : undefined
           , itemClass : undefined
           , initialize : function( options ) {
-                this.el = $( this.prefix + this.key );
+                this.el = $( '#' + this.prefix + '-' + this.key );
                 if( !this.key || !this.el ) {
                     throw new Error('key :' + this.key + ' is invalid');
                 }
-                
-                this.collection.bind( 'add', addItem, this );
+                this.itemClass = V.Item[this.key];
+                //this.collection.bind( 'add', this.addItem, this );
                 //this.collection.bind( 'change')
+                this.collection.bind('reset', this.render, this );
             }
-          , addItem : function( data ) {
-                function createItem( model ) {
-                    var view = new this.itemClass({ model : model });
-                    this.el.append( view.render().el );
-                }                
-
+          , createItem : function( model ) {
+                var view = new this.itemClass({ model : model });
+                this.el.append( view.render().el );
+            }
+          , addItem : function( data ) {                                    
                 if( _.isArray( data ) ) {
                     _.each( model, this.createItem, this );
                 } else {
                     this.createItem( data );
                 }
             }
-          // , render : function () {      
-          //         this.collection.each(function( model ) {
-          //             
-          //         });
-          //     }  
+          , render : function () {      
+                this.collection.each( this.createItem, this );
+                return this;                    
+            }  
         });
         
-        V.Item.TwitterItemView = V.ItemBaseView.extend({
-            template : Templates['twitter-template']          
-        });
+
         
-        V.Item.TwitterImageItemView = V.ItemBaseView.extend({
-            template : Templates['image-template']
-        });
-        
-        V.Item.FacebookItemView = V.ItemBaseView.extend({
-            template : Templates['facebook']
-        });
-        
-        V.List.TwitterView = V.ListBaseView.extend({
+        V.List['twitter-timeline'] = V.ListBaseView.extend({
             key : 'twitter-timeline'
-          , itemClass : V.Item.TwitterItemView  
         });                
                 
-        V.List.TwitterImageView = V.ListBaseView.extend({
+        V.List['twitter-image'] = V.ListBaseView.extend({
             key : 'twitter-image'
-          , itemClass : V.Item.TwitterImageItemView
         });       
          
-        V.List.FacebookView = V.ListBaseView.extend({
-            key : 'facebook'     
-          , itemClass : V.Item.FacebookItemView
+        V.List['facebook'] = V.ListBaseView.extend({
+            key : 'facebook'
         });
         
         
-        Views.ContentView = Backbone.View.extend({
+        V.ContentView = Backbone.View.extend({
             id : '#search-content'
+          , currentKey : undefined
+          , currentView : undefined
           , initialize : function() {
                 this.el = $(this.id);                
                 this.views = { };               
                 this.changeView('twitter-timeline');
             }
+          , doQuery : function( queryString ) {
+                var collection = this.currentView.collection;
+                collection.query( queryString );
+            }
+          , changeCategory : function( secoundKey ) {
+                var firstKey = this.currentKey.split('-')[0];
+                this.changeView( firstKey + '-' + secoundKey );
+            }
           , changeView : function( key ) {                
                 if( this.views[key] ) {
                     this.currentView = this.views[key];                  
-                } else {
-                    var targetClass = _.find( V.List, function( view, viewKey ) {
-                        return key === viewKey;
-                    });
+                } else {                                                            
+                    var targetView = V.List[key]
+                      , targetCollection = Collections[key];
 
-                    if( !targetClass ) {
-                        throw new Error('there is no such a view with key : ' + key );
+                    if( !targetView || !targetCollection) {
+                        throw new Error( 'the key is invalid : ' + key );
                         return;
-                    }
-
-                    this.currentView = this.views[key] = new targetClass();
+                    } 
+                                       
+                    this.currentView = this.views[key] = new targetView({
+                        collection : new targetCollection()
+                    });                    
                 }                                
-                
+                this.currentKey = key;
                 this.currentView.el
                   .addClass('active')
                   .siblings('.active').removeClass('active');
+                //   
+                this.trigger('viewchange');
             }
         });
         
@@ -216,158 +248,57 @@ require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
 
     
     
-    // var TabTracker = (function(){
-    //     var _key = 'twitter-timeline'
-    //       , categoryTempl = _.template('#search-<%= firstkey %>-categories > span.selected')  
-    //       , templates = [
-    //           _.template( '#search-<%= firstKey %>-categories' )
-    //         , _.template( '#search-<%= key %>-content' )
-    //       ];
-    //       
-    //     function update () {
-    //         var options = {
-    //             key : _key
-    //           , firstKey : _key.split('-')[0]
-    //         }
-    //         _.each( templates, function( template ) {
-    //             var selector = template( options );
-    //             console.log('selector : ' + selector);
-    //             $( selector ).addClass( 'active' )
-    //                 .siblings( '.active' ).removeClass( 'active' );
-    //         });
-    //     }                                                                          
-    //     return {
-    //         setKey : function( key ) {
-    //             var keys = [ key ];
-    //             var categorySelector = categoryTempl({ firstkey : key });
-    //             var category = $(categorySelector).text().replace( /\s+/g, '' );
-    //             ( category !== '' ) && ( keys.push( category ) );
-    //             
-    //             _key = keys.join('-');
-    //             console.dir(keys);
-    //             update();
-    //         }
-    //       , setCategory : function( category ) {
-    //             var keys = _key.split('-');
-    //             keys[1] = category;
-    //             _key = keys.join('-');
-    //             update();
-    //         }
-    //       , getKey : function() {                
-    //             return _key;
-    //         }
-    //     }        
-    // })();
     
-    // var TabModel = Backbone.Model.extend({
-    // 
-    //     set : function( attributes, options ) {
-    //         
-    //         if( attributes.key && !attributes.category ) {
-    //             attributes.category = $(this.categorySelector({ key : attributes.key })).text().replace(/\s+/g);
-    //         }
-    //         
-    //         Backbone.Model.prototype.set.call( this, attributes, options );
-    //     }
-    //   , initialize : function() {
-    //         this.set({
-    //             key : 'twitter'
-    //           , category : 'timeline'
-    //         }, {
-    //             silent : true
-    //         });
-    //     }
-    //   , categorySelector : _.template('#search-<% key %>-category.active > span.selected')    
-    // });
-    // 
-    // var TabView = Backbone.View.extend({
-    //     initialize : function() {
-    //         this.model.bind( 'change', this.render, this );
-    //     }
-    //   , templates : [            
-    //         _.template( '#search-<%= key %>-category' )
-    //       , _.template( '#search-<%= key %>-content-<%= category %>' )
-    //     ]categories
-    //   //, categorySelector : _.template('#search-<% key %>-category.active > span.selected')
-    //   , keySelector : _.template('#search-tab > search-<%= key %>')
-    //   
-    //   , render : function( model ) {
-    //         var key = model.get('key')
-    //           , category = model.get( 'category' );      
-    //        
-    //        console.log('key : ' + key);
-    //        console.log('category : ' + category);            
-    //        var obj = {
-    //            key : key
-    //          , category : category
-    //        } 
-    //        _.each( this.templates, function( template ) {
-    //            var selector = template( obj );
-    //            $( selector )
-    //              .addClass( 'active' )
-    //              .siblings( '.active' ).removeClass( 'active' );                                 
-    //        });
-    //     }
-    // });
+
     
     Views.AppView = Backbone.View.extend({
         el : $('#content')
-      , initialize : function () {            
+      , initialize : function () {
+            var content = this.contentView = new Views.ContentView();
+            this.$searchInput = $('#search-input');
             
-            $('#search-categories').on('click', 'span', _.bind( this.categoryChange, this ) );
-            $('#facebook-list').css('display', 'block');            
+            $('#search-tab').tabs()
+            .on('tabsselect', function(e, ui) {
+                var key = [ ];
+                // TODO write more nicely
+                key.push(ui.panel.id.split('-')[2]);        
+                var secoundKey = $( ui.panel ).children('span.selected').text().replace(/\s+/g, '');
+                if( secoundKey !== '' ) {
+                  key.push( secoundKey );
+                }        
+                content.changeView( key.join('-') );
+            })
+            .on('click', 'span.button', function(e) {
+                console.log('span clicked');
+                var category =  $( e.target )
+                    .addClass('selected')
+                    .siblings('.selected')
+                    .removeClass('selected')
+                    .end()
+                    .text().replace(/\s+/g, '');
+                console.log('category : ' + category);            
+                content.changeCategory( category );
+            });
+            
+            content.bind('viewchange', this.viewChangeHandler, this );
         }        
-      // , currentModel : function() {
-      //        var key = TabTracker.getKey();
-      //        return this.models[key];
-      //    }
-      //  , currentView : function() {
-      //        return this.views[ this.currentKey ];
-      //    }
       , events : {
-            'keyup #search-input' : 'query'
-          , 'click #search-tab > li' : 'tabChange'
-         // , 'click #seach-categories span' : 'categoryChange'
+            'keyup #search-input' : 'keyupHandler'
         }
-        
-      , tabChange : function( e ) {
-            console.log('tabChn');
-            $( e.target ).addClass( 'selected' )
-                .siblings('.selected').removeClass('selected');
-            var id = e.target.id;
-            var key = id.split('-')[1];
-            TabTracker.setKey( key );
-            this.query({ keyCode : 13 });            
-        }
-      , categoryChange : function( e ) {
-            console.log('categoryChange');            
-            
-            var category = $( e.target )
-                  .addClass('selected')
-                  .siblings().removeClass('selected')
-                  .end().text()
-                  .replace(/\s+/g, '');
-            
-            console.log('category : ' + category);
-            
-            TabTracker.setCategory( category );
-            this.query( { keyCode : 13 });  
-        }
-      , query : function( e ) {          
+      , keyupHandler : function( e ) {
             if( e.keyCode === 13 ) {
-                var val = $('#search-input').val();                
-                this.currentModel().doQuery( val );               
+                this.viewChangeHandler();
             }
         }
-      , render : function () {
-        
+      , viewChangeHandler : function() {
+            var val = this.$searchInput.val();
+            if( val !== '' ) {
+                this.contentView.doQuery(val);
+            }
         }
-    
     });
     
-   
-    var app = new AppView();
+       
+    var app = new Views.AppView();
     
-    });
-    
-});
+})(jQuery, _, Backbone);
