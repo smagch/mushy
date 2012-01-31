@@ -9,12 +9,14 @@
         li
           a(href='#search-categories-facebook') facebook
       #search-categories-twitter
-        span.button.selected timeline
-        span.button image          
+        span.button.selected search
+        span.button image
+        span.button user          
       #search-categories-facebook            
     input#search-input
     #search-content        
-      ul#search-content-twitter-timeline.active initial timeline
+      ul#search-content-twitter-search.active initial search
+      ul#search-content-twitter-user initial user
       ul#search-content-twitter-image initial image
       ul#search-content-facebook initial facebook
 script(id='twitter-template', type='text/template')
@@ -37,4 +39,5 @@ script(src='/javascripts/libs/jquery/jquery-1.7.1.js')
 script(src='/javascripts/jquery-ui-1.8.17.custom.min.js')
 script(src='/javascripts/libs/underscore/underscore.js')
 script(src='/javascripts/libs/backbone/backbone.js')
+script(src='/javascripts/jsonselect.js')
 script(src='/javascripts/views/home/main.js')

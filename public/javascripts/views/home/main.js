@@ -8,12 +8,15 @@
 // });
 
 //require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
-(function($, _, Backbone){
+(function($, _, Backbone, JSONSelect, undefined){
   
-  
-  
-
-      
+    // TODO - add loding gif
+    // TODO - add paging
+    // TODO - design tab
+    // TODO - make them draggable
+    // TODO - try sortable
+    // TODO - datepicker
+    
     var noop = function() {};
     // templates
     var Templates = (function(){
@@ -52,12 +55,12 @@
                 if(!queryString) {
                     return this._query;
                 }
-                if( this._query === queryString ) {
-                    return;
-                }
                 
-                this._query = queryString;
-                this.fetch();
+                if( this._query !== queryString ) {
+                    this._query = queryString;
+                    this.fetch();
+                }                                
+                
                 
             }
           , nextUrl : undefined
@@ -71,15 +74,38 @@
             }
         });
         
-        C['twitter-timeline'] = C.QueryCollection.extend({
-          
+        C['twitter-search'] = C.QueryCollection.extend({          
             model : Models.TwitterModel
           , url : function () {
                 return "http://search.twitter.com/search.json?q=" + this._query + "&callback=?"
             }
-          , parse : function( data ) {
+          , parse : function( data ) { 
+               
                 var models = data.results;
                 this.nextUrl = data.next_page;
+                return models;
+            }
+        });
+        
+        C['twitter-user'] = C.QueryCollection.extend({            
+            model : Models.TwitterModel
+          , url : function() {
+                return 'https://api.twitter.com/1/statuses/user_timeline.json?' + 
+                  'include_entities=true&include_rts=true&screen_name=' + this._query +
+                  '&callback=?'                 
+            }
+          , parse : function( data ) {                
+                var models = [ ];
+               
+                
+                _.each(data, function( model ) {
+                    models.push({
+                        text : model.text
+                      , profile_image_url : model.user.profile_image_url
+                      , from_user : model.user.screen_name
+                    });
+                });
+                
                 return models;
             }
         });
@@ -90,9 +116,10 @@
           , url : function() {
                 return 'http://otter.topsy.com/searchdate.json?q=' + this._query + '&geocode=&type=image&perpage=16&callback=?';
             }
-          , parse : function( data ) {
+          , parse : function( data ) {                
                 var models = data.response.list;
                 // TODO nextUrl
+            
                 return models;
             }
         });
@@ -127,19 +154,21 @@
                 
             }
           , render : function() {
-                $(this.el).html(
+                this.$el.html(
                     this.template({
                         model : this.model.toJSON()
                     })
                 );
                 return this;
             }
-        });
+        });        
         
-        V.Item['twitter-timeline'] = V.ItemBaseView.extend({
+        V.Item['twitter-search'] = V.ItemBaseView.extend({
             template : Templates['twitter-template']
           , className : 'clearfix tweet'
         });
+        
+        V.Item['twitter-user'] = V.Item['twitter-search'];
         
         V.Item['twitter-image'] = V.ItemBaseView.extend({
             template : Templates['image-template']
@@ -157,18 +186,16 @@
           , key : undefined
           , itemClass : undefined
           , initialize : function( options ) {
-                this.el = $( '#' + this.prefix + '-' + this.key );
-                if( !this.key || !this.el ) {
+                this.setElement( '#' + this.prefix + '-' + this.key );
+                if( !this.key || !this.$el) {
                     throw new Error('key :' + this.key + ' is invalid');
                 }
                 this.itemClass = V.Item[this.key];
-                //this.collection.bind( 'add', this.addItem, this );
-                //this.collection.bind( 'change')
-                this.collection.bind('reset', this.render, this );
+                this.collection.on('reset', this.render, this );
             }
           , createItem : function( model ) {
                 var view = new this.itemClass({ model : model });
-                this.el.append( view.render().el );
+                this.$el.append( view.render().el );
             }
           , addItem : function( data ) {                                    
                 if( _.isArray( data ) ) {
@@ -178,34 +205,31 @@
                 }
             }
           , render : function () {      
-                this.collection.each( this.createItem, this );
+                
+                if( this.collection.length ) {
+                    this.collection.each( this.createItem, this );
+                } else {
+                    //this.append
+                    // TODO error
+                }
                 return this;                    
             }  
         });
         
-
-        
-        V.List['twitter-timeline'] = V.ListBaseView.extend({
-            key : 'twitter-timeline'
-        });                
-                
-        V.List['twitter-image'] = V.ListBaseView.extend({
-            key : 'twitter-image'
-        });       
-         
-        V.List['facebook'] = V.ListBaseView.extend({
-            key : 'facebook'
-        });
+        _.each( V.Item, function( item, key ) {
+            V.List[key] = V.ListBaseView.extend({
+                key : key
+            });
+        });        
         
         
         V.ContentView = Backbone.View.extend({
-            id : '#search-content'
+            el : '#search-content'
           , currentKey : undefined
           , currentView : undefined
           , initialize : function() {
-                this.el = $(this.id);                
                 this.views = { };               
-                this.changeView('twitter-timeline');
+                this.changeView('twitter-search');
             }
           , doQuery : function( queryString ) {
                 var collection = this.currentView.collection;
@@ -232,7 +256,7 @@
                     });                    
                 }                                
                 this.currentKey = key;
-                this.currentView.el
+                this.currentView.$el
                   .addClass('active')
                   .siblings('.active').removeClass('active');
                 //   
@@ -280,7 +304,8 @@
                 content.changeCategory( category );
             });
             
-            content.bind('viewchange', this.viewChangeHandler, this );
+            content.on('viewchange', this.viewChangeHandler, this );
+            
         }        
       , events : {
             'keyup #search-input' : 'keyupHandler'
@@ -301,4 +326,4 @@
        
     var app = new Views.AppView();
     
-})(jQuery, _, Backbone);
+})(jQuery, _, Backbone, JSONSelect);
