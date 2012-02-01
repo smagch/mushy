@@ -66,7 +66,6 @@
                 if( q !== queryString && queryString.length > 0 && queryString.length < 50 ) {
                     this._queryString( queryString );
                     this.isRequesting(true);
-                    console.log('this.url() : ' + this.url());                    
                     this.fetch();
                 }                                                                
             }
@@ -110,7 +109,6 @@
                 if(data.next_page) {
                      this.nextUrl = 'http://search.twitter.com/search.json' + data.next_page ;
                  } else if( data.refresh_url ){
-                     //this.nextUrl = 'http://search.twitter.com/search.json' + data.refresh_url + '&callback=?';
                      console.log('refresh : ' + this.nextUrl );
                      console.dir( data );
                      this.nextUrl = undefined;
@@ -124,6 +122,13 @@
         
         C['twitter-user'] = C.QueryCollection.extend({            
             model : Models.TwitterModel
+          , initialize : function() {
+                this.on('reset', function() {
+                  console.log('user reset');
+                }).on('add', function() {
+                  console.log('user add');
+                });
+            }
           , defaultUrl : 'https://api.twitter.com/1/statuses/user_timeline.json'
           , params : {
                 include_entities : true
@@ -139,6 +144,11 @@
                 }                
                 var models = [ ];               
                 
+                // if Paging, remove first tweet
+                if( this.isPaging ) {
+                    data.shift();
+                }
+                
                 _.each(data, function( model ) {
                     models.push({
                         text : model.text
@@ -146,18 +156,22 @@
                       , from_user : model.user.screen_name
                     });
                 });
+                
+                var lastId = _.last( data )['id_str'];
+                
+                this.nextUrl = this.defaultUrl + '?' + $.param( _.extend({ max_id : lastId }, this.params) );
                                 
                 return models;
             }
           , timeoutId : undefined
-          , fetch : function() {
+          , fetch : function( options ) {
                 // 4 sec for timeout
                 this.timeoutId = setTimeout( _.bind( function() {
                     console.log('timeout');
                     this.timeoutId = undefined;
                     this.reset([]);
                 }, this ) , 4000);
-                Backbone.Collection.prototype.fetch.call( this );
+                Backbone.Collection.prototype.fetch.call( this, options );
             }
         });
         
@@ -167,13 +181,19 @@
           , params : {
                 q : ''
               , type : 'image'
-              , perpage : 16
+              , perpage : 20
             }
           , parse : function( data ) {
                 this.isRequesting(false);
-                var models = data.response.list;
-                // TODO nextUrl
-            
+                var response = data.response;
+                var models = response.list;
+                console.dir( data );
+                var nextOffset = response['last_offset'];
+                if( nextOffset !== response['offset'] ) {
+                    this.nextUrl = this.defaultUrl + '?' + $.param( _.extend({ offset : nextOffset }, this.params) );                        
+                } else {
+                    this.nextUrl = undefined;
+                }              
                 return models;
             }
         });
@@ -280,7 +300,8 @@
                     this.createItem( data );
                 }
             }                  
-          , render : function () {      
+          , render : function () {
+                
                 this.$el.html('');
                 if( this.collection.length ) {                    
                     this.collection.each( this.createItem, this );
