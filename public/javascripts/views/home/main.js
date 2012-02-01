@@ -10,8 +10,6 @@
 //require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
 (function($, _, Backbone, JSONSelect, undefined){
   
-    // TODO - add loding gif
-    // TODO - add paging
     // TODO - design tab
     // TODO - make them draggable
     // TODO - try sortable
@@ -175,6 +173,27 @@
             }
         });
         
+        C['twitter-id'] = C.QueryCollection.extend({
+            model : Models.TwitterModel
+          , defaultUrl : 'https://api.twitter.com/1/statuses/show.json'
+          , params : {
+                id : ''
+              , include_entity : true
+            }
+          , queryKey : 'id'
+          , parse : function( data ) {
+                this.isRequesting(false);
+                var models = [ ];
+                models.push({
+                    text : data.text
+                  , profile_image_url : data.user.profile_image_url
+                  , from_user : data.user.screen_name
+                });
+                
+                return models;
+            }
+        })
+        
         C['twitter-image'] = C.QueryCollection.extend({          
             model : Models.TwitterImageModel
           , defaultUrl : 'http://otter.topsy.com/searchdate.json'
@@ -254,7 +273,7 @@
           , className : 'clearfix tweet'
         });
         
-        V.Item['twitter-user'] = V.Item['twitter-search'];
+        V.Item['twitter-user'] = V.Item['twitter-id'] = V.Item['twitter-search'];
         
         V.Item['twitter-image'] = V.ItemBaseView.extend({
             template : Templates['image-template']
