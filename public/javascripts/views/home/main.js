@@ -42,61 +42,99 @@
     var Collections = (function(){
         var C = { };
         C.QueryCollection = Backbone.Collection.extend({
-            // doQuery : function( queryString ) {
-            //        if( queryString && 
-            //            this._query !== queryString && 
-            //            queryString.length > 0 &&
-            //            queryString.length < 50 ) {
-            //            this._query = queryString
-            //            this.fetch();
-            //        }            
-            //    }
-            query : function(queryString) {
-                if(!queryString) {
-                    return this._query;
+            initialize : function() {
+
+            }
+        ,   url : function() {
+                if( this.isPaging ) {
+                    return this.nextUrl + '&callback=?';
                 }
-                
-                if( this._query !== queryString ) {
-                    this._query = queryString;
+                return this.defaultUrl + '?' + $.param(this.params) + '&callback=?';
+            }
+          , params : { }
+          , queryKey : 'q'
+          , _queryString : function(str) {
+                if( str === undefined ) {
+                    return this.params[this.queryKey];
+                }
+                this.params[this.queryKey] = str;
+            }          
+          , query : function(queryString) {
+                var q = this._queryString();
+                if(!queryString) {
+                    return q;
+                }                
+                this.isPaging = false;
+                if( q !== queryString && queryString.length > 0 && queryString.length < 50 ) {
+                    this._queryString( queryString );
+                    this.isRequesting(true);
+                    console.log('this.url() : ' + this.url());                    
                     this.fetch();
-                }                                
-                
-                
+                }                                                                
+            }
+          , queryNext : function() {
+                 if( this.nextUrl && !this.isRequesting() ) {                     
+                     this.isPaging = true;
+                     this.isRequesting(true);
+                     this.fetch({
+                         add : true
+                     });
+                 }
+             }              
+          , isRequesting : function( value ) {
+                if( value === undefined ) {
+                    return this._isRequesting;
+                }
+                this._isRequesting = value;
             }
           , nextUrl : undefined
           , hasNext : function() {
                 return !!this.nextUrl;                        
-            }      
-          , next : function() {
-                if( this.nextUrl ) {
-                  this.url = nextUrl;
-                }
             }
+   
+ 
         });
         
         C['twitter-search'] = C.QueryCollection.extend({          
             model : Models.TwitterModel
-          , url : function () {
-                return "http://search.twitter.com/search.json?q=" + this._query + "&callback=?"
+          , defaultUrl : "http://search.twitter.com/search.json"
+          , params : {
+                q : ''
             }
-          , parse : function( data ) { 
-               
+          , parse : function( data ) {
+                this.isRequesting(false);
                 var models = data.results;
-                this.nextUrl = data.next_page;
+                if(data.next_page) {
+                     this.nextUrl = 'http://search.twitter.com/search.json' + data.next_page ;
+                 } else if( data.refresh_url ){
+                     //this.nextUrl = 'http://search.twitter.com/search.json' + data.refresh_url + '&callback=?';
+                     console.log('refresh : ' + this.nextUrl );
+                     console.dir( data );
+                     this.nextUrl = undefined;
+                 } else {
+                     this.nextUrl = undefined;
+                 }       
+                
                 return models;
             }
         });
         
         C['twitter-user'] = C.QueryCollection.extend({            
             model : Models.TwitterModel
-          , url : function() {
-                return 'https://api.twitter.com/1/statuses/user_timeline.json?' + 
-                  'include_entities=true&include_rts=true&screen_name=' + this._query +
-                  '&callback=?'                 
+          , defaultUrl : 'https://api.twitter.com/1/statuses/user_timeline.json'
+          , params : {
+                include_entities : true
+              , include_rts : true
+              , screen_name : ''
             }
-          , parse : function( data ) {                
-                var models = [ ];
-               
+          , queryKey : 'screen_name'              
+          , parse : function( data ) {
+                this.isRequesting(false);
+                if( this.timeoutId ) {
+                    clearTimeout(this.timeoutId);
+                    this.timeoutId = undefined;
+                }                
+                var models = [ ];               
                 
                 _.each(data, function( model ) {
                     models.push({
@@ -105,18 +143,31 @@
                       , from_user : model.user.screen_name
                     });
                 });
-                
+                                
                 return models;
+            }
+          , timeoutId : undefined
+          , fetch : function() {
+                // 4 sec for timeout
+                this.timeoutId = setTimeout( _.bind( function() {
+                    console.log('timeout');
+                    this.timeoutId = undefined;
+                    this.reset([]);
+                }, this ) , 4000);
+                Backbone.Collection.prototype.fetch.call( this );
             }
         });
         
-        C['twitter-image'] = C.QueryCollection.extend({
-          
+        C['twitter-image'] = C.QueryCollection.extend({          
             model : Models.TwitterImageModel
-          , url : function() {
-                return 'http://otter.topsy.com/searchdate.json?q=' + this._query + '&geocode=&type=image&perpage=16&callback=?';
+          , defaultUrl : 'http://otter.topsy.com/searchdate.json'
+          , params : {
+                q : ''
+              , type : 'image'
+              , perpage : 16
             }
-          , parse : function( data ) {                
+          , parse : function( data ) {
+                this.isRequesting(false);
                 var models = data.response.list;
                 // TODO nextUrl
             
@@ -127,11 +178,23 @@
         C['facebook'] = C.QueryCollection.extend({
           
             model : Models.FacebookModel
-          , url : function() {
-                return 'https://graph.facebook.com/search?type=post&limit=20&q=' + this._query + '&offset=10&callback=?';            
+          , defaultUrl : 'https://graph.facebook.com/search'
+          , params : {
+                type : 'post'
+              , limit : 20
+              , q : ''
+              , offset : 1
             }
           , parse : function( data ) {
-                var models = data.data;                
+                this.isRequesting(false);
+                console.log('this.isRequesting() : ' + this.isRequesting());
+                
+                var models = data.data;
+                if( data.paging && data.paging.next ) {
+                    this.nextUrl = data.paging.next + '&callback=?';
+                } else {
+                    console.dir( data );
+                }
                 //this.nextUrl = data.paging.next;
                 return models;
             }
@@ -192,6 +255,7 @@
                 }
                 this.itemClass = V.Item[this.key];
                 this.collection.on('reset', this.render, this );
+                this.collection.on('add', this.addItem, this );
             }
           , createItem : function( model ) {
                 var view = new this.itemClass({ model : model });
@@ -203,14 +267,14 @@
                 } else {
                     this.createItem( data );
                 }
-            }
+            }                  
           , render : function () {      
-                
-                if( this.collection.length ) {
+                this.$el.html('');
+                if( this.collection.length ) {                    
                     this.collection.each( this.createItem, this );
-                } else {
-                    //this.append
-                    // TODO error
+                } else {                    
+                    // TODO make error msg nicely
+                    this.$el.append('<p class=nohit>no hit for keyword : ' + this.collection._query + '</p>');
                 }
                 return this;                    
             }  
@@ -230,6 +294,23 @@
           , initialize : function() {
                 this.views = { };               
                 this.changeView('twitter-search');
+                var $el = this.$el
+                  , el = this.el;
+                // scrollHeight IE                                  
+            }
+          , events : {
+              'scroll' : 'scrollHandler'
+            }
+          , scrollHandler : function(e) {
+                if( this.$el.height() + this.$el.scrollTop() > this.el.scrollHeight - 10 ) {
+                    this.loadNext();
+                }
+            }
+          , loadNext : function() {
+                var collection = this.currentView.collection;
+                if( collection.hasNext() ) {
+                    collection.queryNext();
+                }
             }
           , doQuery : function( queryString ) {
                 var collection = this.currentView.collection;
@@ -323,7 +404,8 @@
         }
     });
     
-       
+    window.Collections = Collections;
+    window.Views = Views;   
     var app = new Views.AppView();
     
 })(jQuery, _, Backbone, JSONSelect);
