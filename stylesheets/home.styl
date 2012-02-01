@@ -85,9 +85,15 @@ header
   ul
     margin 20px
     padding 0
-    display none
+    display none    
     &.active
       display block
+    &.active.loding:after
+      display block
+      content ''
+      width 100%
+      height 100px
+      background transparent url('../images/bigrotation2.gif') no-repeat center      
     li.tweet
       display block
       list-style none

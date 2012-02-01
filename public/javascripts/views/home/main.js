@@ -42,10 +42,8 @@
     var Collections = (function(){
         var C = { };
         C.QueryCollection = Backbone.Collection.extend({
-            initialize : function() {
-
-            }
-        ,   url : function() {
+           
+            url : function() {
                 if( this.isPaging ) {
                     return this.nextUrl + '&callback=?';
                 }
@@ -86,6 +84,11 @@
                     return this._isRequesting;
                 }
                 this._isRequesting = value;
+                if( value ) {
+                    this.trigger('requeststart');
+                } else {
+                    this.trigger('requestend');
+                }                                
             }
           , nextUrl : undefined
           , hasNext : function() {
@@ -254,8 +257,17 @@
                     throw new Error('key :' + this.key + ' is invalid');
                 }
                 this.itemClass = V.Item[this.key];
-                this.collection.on('reset', this.render, this );
-                this.collection.on('add', this.addItem, this );
+                this.collection
+                .on('reset', this.render, this )
+                .on('add', this.addItem, this )
+                .on('requeststart', this.showLoding, this )
+                .on('requestend', this.hideLoding, this );
+            }
+          , showLoding : function() {
+                this.$el.addClass('loding');
+            }
+          , hideLoding : function() {
+                this.$el.removeClass('loding');
             }
           , createItem : function( model ) {
                 var view = new this.itemClass({ model : model });
