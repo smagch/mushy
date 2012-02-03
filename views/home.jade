@@ -1,26 +1,36 @@
-#wrapper
-  header
-    h1 backbone social media test
-  #content
-    #search-tab
-      ul                
-        li
-          a(href='#search-categories-twitter') twitter
-        li
-          a(href='#search-categories-facebook') facebook
-      #search-categories-twitter
-        span.button.selected search
-        span.button image
-        span.button user 
-        span.button id         
-      #search-categories-facebook            
-    input#search-input
-    #search-content        
-      ul#search-content-twitter-search.active initial search
-      ul#search-content-twitter-user initial user
-      ul#search-content-twitter-id initial id
-      ul#search-content-twitter-image initial image
-      ul#search-content-facebook initial facebook
+#wrapper      
+  #content.clearfix
+    #left-column
+      #article
+        label headline
+        input#header-input
+        label description
+        textarea#description-input
+        ol#article-content
+    #right-column
+      #search-tab
+        ul                
+          li
+            a(href='#search-categories-twitter') twitter
+          li
+            a(href='#search-categories-facebook') facebook
+        #search-categories-twitter
+          span.button.selected search
+          span.button image
+          span.button user 
+          span.button id         
+        #search-categories-facebook            
+      input#search-input
+      #search-content        
+        ul#search-content-twitter-search.active initial search
+        ul#search-content-twitter-user initial user
+        ul#search-content-twitter-id initial id
+        ul#search-content-twitter-image initial image
+        ul#search-content-facebook initial facebook
+script(id='twitter-quote-template', type='text/template')
+  | <div class='delete-button' ></div>
+  | <div class='add-text'>click to add content</div>
+  | <div class='twitter-quote-content'></div>
 script(id='twitter-template', type='text/template')
   |     <a href='http://twitter.com/<%= model.from_user %>' >
   |       <img src=<%= model.profile_image_url %> >
