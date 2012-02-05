@@ -13,11 +13,12 @@ body {
 
 div {
 	display: block;
+	border: 1px solid #999;
 	top: 0;
 	left: 0;
 }
 	
-#box {
+#left-column {
 	position: relative;
 	top: 0;
 	left: 0;
@@ -31,23 +32,38 @@ div {
 
 
 
-#box > div {
+#left-column > div {
 	position: relative;
 	width : 300px;
 	height : 40px;
 	margin: 30px;
 }
-#box > div.dragging {
+
+div.dragging {
 	opacity : 0.3;
 }
 
+div.selected {
+	border: 1px solid #3A3599;
+}
+
+#marker {
+	position: absolute;
+	width: 300px;
+	height: 10px;
+	background: #993F4A;
+	display: none;
+}
+#marker.active {
+	display: block;
+}
 
 
 
 </style>
 <script src="public/javascripts/libs/underscore/underscore.js" type="text/javascript" charset="utf-8"></script>
-<script src="public/javascripts/libs/backbone/backbone.js" type="text/javascript" charset="utf-8"></script>
 <script src="public/javascripts/libs/jquery/jquery-1.7.1.js" type="text/javascript" charset="utf-8"></script>
+<script src="public/javascripts/libs/backbone/backbone.js" type="text/javascript" charset="utf-8"></script>
 <script src="jquery.ui.core.js"></script>
 <script src="jquery.ui.widget.js"></script>
 <script src="jquery.ui.mouse.js"></script>
@@ -59,120 +75,14 @@ div {
 </script>
 </head>
 <body>
-	<div id='box'>			
-	</div>	
+	<div id='marker'></div>
+	<div id='left-column'>			
+	</div>
+	<div id='right-column'>
+	</div>
+<script src='main.js'></script>
+
 </body>
-<script>
-	for (var i=0; i < 10 ; i++) {
-		var col = (Math.random() * 0xFFFFFF >> 0).toString(16);
-		$('<div />').css({
-			background: col,
-			height : 50 + Math.floor(Math.random() * 50)
-		}).appendTo('#box');
-	};
-
-	var $el,
-	offsetX,
-	offsetY;
-
-			
-	$('#box > div').on('mousedown', downHandler);
-	
-	
-	// return dimension witout element
-	function getCache( element ) {
-		var cache = {
-			top : [],
-			bottom : []
-		};
-		
-		$('#box > div').each(function() {
-			if( this !== element ) {
-				var offset = $(this).offset();
-				cache.top.push(offset.top);
-				var bottom = offset.top + $(this).height();
-				cache.bottom.push(bottom);
-			} else {
-				console.log('this is element ');
-			}
-		});
-		
-		return cache;
-	}
-	
-	function downHandler (e) {
-	
-	
-  	var $self = $(this),
-       	offset = $self.offset();
-         
-    if( $el ) {
-      throw new Error('$el is not removed')
-      mouseUpHandler();
-    }
-       
-    $el = $self.clone().css({
-           left : offset.left
-         , top : offset.top
-         , position : 'absolute'
-         , width : $self.width()
-         , height : $self.height()
-         , zIndex : 1000
-       }).appendTo('body');
-       
-    offsetX = $el.offset().left - e.clientX
-   	offsetY = $el.offset().top - e.clientY;
-
-		var cache = getCache(this);
-		var data = {
-			$original : $self,
-			cache : cache
-			//originalIndex : $original.
-		}
-
-		$(document)
-			.on('mousemove', data, moveHandler)
-			.on('mouseup', data, upHandler);	   		   		   		   		   		   		   		   		
-  }
-	
-	function upHandler(e) {
-		$(document)
-			.off('mousemove', moveHandler)
-			.off('mouseup', upHandler);
-			
-		$el.remove();
-		$el = undefined;	
-	}
-	
-	function moveHandler(e) {		
-		var offset = {
-      left : offsetX + e.clientX,
-     	top : offsetY + e.clientY
-    };
-    $el.css(offset);
-		
-		var direction,
-				cache = e.data.cache;
-				
-		if(e.data.$original.offset().top < offset.top ) {
-			// move up
-			direction = 'bottom'
-			offset['bottom'] = offset.top + $el.height();
-			console.log('offset["bottom"] : ' + offset["bottom"]);
-		} else {
-			// move down
-			direction = 'top'			
-		}					
-		var index = _.sortedIndex( cache[direction], offset[direction]);
-		console.log('index : ' + index);
-		// trigger('indexchange')
-		//console.log('tIndex : ' + tIndex);		
-		//var bIndex = _.sortedIndex( cache.bottoms, bottom);
-		//console.log('bIndex : ' + bIndex);
-		
-	}
-	
-</script>
 </html>
 
 
