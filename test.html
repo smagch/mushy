@@ -9,6 +9,7 @@ html, body, div {
 }
 body {
 	background: #999;
+	position: relative;
 }
 
 div {
@@ -17,22 +18,36 @@ div {
 	top: 0;
 	left: 0;
 }
+
+#wrapper {
+	height: 100%;
+	width: 100%;
+}
 	
 #left-column {
-	position: relative;
+	position: absolute;
 	top: 0;
 	left: 0;
+	bottom: 0;
+	width: 400px;
+	overflow: auto;
+}
+
+#right-column {
+	position: absolute;
+	background: #5E5C5F;
 	top: 0;
 	bottom: 0;
+	left: 400px;
 	right: 0;
-	left: 0;
-
+	width: 400px;
 	overflow: auto;
 }
 
 
 
-#left-column > div {
+#left-column > div,
+#right-column > div {
 	position: relative;
 	width : 300px;
 	height : 40px;
@@ -75,11 +90,18 @@ div.selected {
 </script>
 </head>
 <body>
-	<div id='marker'></div>
-	<div id='left-column'>			
+	<div id='wrapper'>
+		<div id='marker'></div>
+		<div id='left-column'>			
+		</div>
+		<div id='right-column'>
+		</div>
 	</div>
-	<div id='right-column'>
-	</div>
+<script type="text/javascript" charset="utf-8">
+	var arr = [1, 'hoge', 2, 'foo'];
+	arr.splice(2, 1);
+	console.dir( arr );
+</script>
 <script src='main.js'></script>
 
 </body>
