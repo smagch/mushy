@@ -4,28 +4,33 @@
 // jQuery plugin 
 (function($, _){
   
-  // insertive, acceptive
+  // TODO - make clone flag
   var defaults = {
-    item : 'li',
+    itemTag : 'div',
     zIndex : 1000,
     appendTo : 'body',
     cloneClass : 'dragging',
     selectClass : 'selected',
         
-    insertive : true,
-    insertiveTo : '*',
+
     
     acceptive : true,
+    // could be selector string, element, 
+    // array of elements or jquery object
     acceptiveFrom : '*',
     
-    selfSortive : true
+    // TODO - it may be useful to add option like below
+    // insertive : true,
+    // insertiveTo : '*',
+    
+    selfSort : true
   },
   
-  // store all sortive instance
-  container = [ ],  
+  // store all sortive element
+  container = [ ],
   
-  // internal variable
-  currentIndex,
+  // isUpped = true,  
+  
   
   methods = {
     init : function(options) {
@@ -38,92 +43,57 @@
       
       this
         .data('sortive', options)
-        .on('mousedown.sortive', options.item, options, downHandler);
+        .on('mousedown.sortive', options.itemTag, downHandler);
         
       return this;
       //this.data('sortable', )
     },
     destroy : function() {
-      //var $this = $.data(this, 'sortive');
-      var index = _.indexOf(this);
-      container.splice(index);
-      this.off('mousedown.sortive', downHandler);
+      
+      this
+      .removeData('sortive')
+      .off('mousedown.sortive', downHandler)
+      .each(function() {
+        var index = _.indexOf(this);
+        container.splice(index, 1);
+      });      
+            
       return this;
     },
     
     options : function(options) {
+      var data = this.data('sortive');
       if(!options) {
-        // getter
-        // return 
+        return data;
       }
-      // setter            
+      
+      $.extend(data, options);
+    },
+    
+    getAcceptive : function() {
+              
+      var ret = [ ];
+      this.each(function() {
+        var $self = $(this);
+                       
+        _.each(container, function(sortive) {
+          var options = $(sortive).data('sortive');
+          if(!$self.is(sortive) ) {
+            // TODO - test acceptiveFrom is correctly performed
+            options.acceptive && ( options.acceptiveFrom === '*' || 
+              $(options.acceptiveFrom).is(sortive) ) && ret.push(sortive);
+          } else {
+            options.selfSort && ret.push(sortive);
+          }      
+        });
+      });
+      return ret;                  
     }
     
-    // return acceptive sortive objects from context
-    // used to get dimensions of sortives when mouse drag start
-    // if selfSortive is true, and insertive is false, return only context itself
-    // TODO - what if context length is not 1 ???
-    // acceptives : function() {
-    //   var acceptives = [ ],
-    //       options = this.data('sortive-options')
-    //   
-    //   if(options.selfSortive) {
-    //     acceptives.push(this[0]);
-    //   }
-    //   if(options.insertive) {
-    //     //insertiveTo
-    //   }
-    //   
-    //   return acceptives;
-    // }
-    
-    // return array of dimension
-
-    // ,
-    //     
-    //     _sort : function() {
-    //       
-    //     }
-    
   },
   
   
-  // 
-  // should map like this from options
-  // { el0 : { acceptive : [ el0, el1 ], insertive : [ ] },
-  //   el1 : { acceptive : [ ], insertive : [ el0 ] } // selfSortive = false
-  //}
-  // updateMap = function() {
-  //   _.each(sortives, function(sortive) {
-  //     var $sortive = $(sortive),
-  //         options = $sortive.options;      
-  //     // 
-  //     $sortive.data('sortive', {
-  //       acceptive : [ ],
-  //       insertive : [ ]
-  //     });
-  //     
-  //     
-  //   });
-  // },
-  
-  getAcceptives = function($sortive) {
-    var ret = [ ];        
-    
-    _.each(container, function(sortive) {
-      var options = $(sortive).data('sortive');
-      if(!$sortive.is(sortive)) {
-        // TODO - set limit by selector, using acceptiveFrom or insertiveTo
-        options.acceptive && ret.push(sortive);
-      } else {
-        options.selfSortive && ret.push(sortive);
-      }      
-    });
-    
-    return ret;
-  },
-  
-  getRects = function(sortives, $target) {      
+  getRects = function(sortives, $target, elementIndex) {      
     return _.map(sortives, function(sortive) {
       var $sortive = $(sortive),
       selfOffset = $sortive.offset(),
@@ -134,17 +104,22 @@
       dimensions = {
         top : [],
         bottom : []
-      };
+      },
+      isSelfSort = $target.is(sortive);
       
       // TODO add selector for children
       $sortive.children().each(function() {      		
 		    var $self = $(this),
-		        offset = $self.offset();
+		        offset = $self.offset();		    
 			  dimensions.top.push(offset.top);
 			  dimensions.bottom.push(offset.top + $self.height());			  			  			  
 		  });
-
-		  var isSelfSort = $target.is(sortive);
+      
+      // if selfSort, remove dragging element's dimension
+      if(isSelfSort) {
+        dimensions.top.splice(elementIndex, 1);
+        dimensions.bottom.splice(elementIndex, 1);
+      }		  
 		  
     	return {
     	  rect : rect,
@@ -154,39 +129,21 @@
     });
   },
   
-  // return dimensions without element
-  // getCache = function(element) {
-  //   var cache = {
-  //    top : [],
-  //    bottom : []
-  //  };
-  //  // TODO  
-  //  this.siblings().each(function() {
-  //    if( this !== element ) {
-  //      var $self = $(this),
-  //          offset = $self.offset();
-  //      cache.top.push(offset.top);
-  //      cache.bottom.push(offset.top + $self.height());
-  //    } else {
-  //      console.log('this is element ');
-  //    }
-  //  });
-  // 
-  //  return cache;
-  // },
-  
-  downHandler = function(e) {  
+  downHandler = function(e) {
+    // if missed mouseup event excute it ?
+    
     // if( $el ) {
      //   throw new Error('$el is not removed')
      //   mouseUpHandler.call(this);
      // }  
-  	var options = e.data,
-  	$self = $(this),
+     //options = e.data,
+  	var $self = $(this),
   	$sortive = $(e.delegateTarget),
+  	options = $sortive.data('sortive'),
     offset = $self.offset(),
     w = $self.width(),
     h = $self.height(),
-    
+    index = $self.index(),
            	 
     $clone = $self
       .clone()
@@ -204,9 +161,9 @@
     offsetX = $clone.offset().left - e.clientX,
    	offsetY = $clone.offset().top - e.clientY,
     
-    acceptives = getAcceptives($sortive),
+    acceptives = $sortive.sortive('getAcceptive'),
     
-    rects = ( !!acceptives.length && getRects(acceptives, $sortive)),
+    rects = ( !!acceptives.length && getRects(acceptives, $sortive, index)),
   	
   	data = {
   	  $original : $self,
@@ -217,12 +174,13 @@
   	  centerOffsetX : w * 0.5,
   	  centerOffsetY : h * 0.5,
   	  height : h,
-      originalIndex : $self.index(),
+      originalIndex : index,
       $sortive : $sortive,
-  	  options : options
+  	  options : options,
+  	  currentIndex : (options.selfSort && index)
   	};  	
     
-    currentIndex = data.originalIndex;
+    //currentIndex = data.originalIndex;
     $self.addClass(options.selectClass),
   	$(document)
   		.on('mousemove.sortive', data, moveHandler)
@@ -256,7 +214,7 @@
       top : data.offsetY + e.clientY
     },        
     rects = e.data.rects,
-    // TODO currently only support up and down
+    // TODO - currently only support up and down
     direction;
                     
     $clone.css(offset);
@@ -272,20 +230,11 @@
     });
     
     if(targetRect) {
-      // if targetRect is selfRect, drop dragging rect
+            
       var dimensions = targetRect.children;
-      if(targetRect.isSelfSort){                        
-        dimensions = {
-          top : dimensions.top.concat(),
-          bottom : dimensions.bottom.concat()
-        };
-        dimensions.top.splice(data.originalIndex, 1);
-        dimensions.bottom.splice(data.originalIndex, 1);
-        
-      }
       
-      
-      if( data.$original.offset().top < offset.top ) {
+      // if not selfSort, use top
+      if( targetRect.isSelfSort && data.$original.offset().top < offset.top ) {
     		// move up
     		direction = 'bottom';
     		offset['bottom'] = offset.top + data.height;
@@ -295,23 +244,21 @@
     		direction = 'top';			
     	}
     	    	
-    	var index = _.sortedIndex( dimensions[direction], offset[direction]);
-    	console.log('index : ' + index);
-    	
-     // if(index != currentIndex) {
-      //        currentIndex = index;
-      //        data.$sortive.trigger('indexchange', {
-      //          originalIndex : data.originalIndex,
-      //          index : index,
-      //          direction : direction,
-      //          // current elements dimension
-      //          dimension : {
-      //            top : data.cache.top[index],
-      //            bottom : data.cache.bottom[index]
-      //          }
-      //        });
-      //      }
+    	var index = _.sortedIndex( dimensions[direction], offset[direction]);    	    
       
+      if(index !== data.currentIndex) {
+        data.currentIndex = index;
+        data.$sortive.trigger('indexchange', {
+          originalIndex : data.originalIndex,
+          index : index,
+          direction : direction,
+          // current elements dimension
+          dimension : {
+            top : dimensions.top[index],
+            bottom : dimensions.bottom[index]
+          }
+        });
+      }      
     }
     
     
@@ -320,10 +267,18 @@
   };
   
   
-  
   $.fn['sortive'] = function(method) {
     if( methods[method] ) {
       return methods[method].apply(this, Array.prototype.slice.call( arguments, 1 ));
+    } else if( method in defaults ) {
+      if( arguments[1] ) {
+        // options setter
+        return methods.options.call(this, {
+          method : arguments[1]
+        });       
+      }
+      // options getter      
+      return methods.options.call(this)[method];
     } else if( typeof method === 'object' || !method ){
       return methods['init'].apply(this, arguments);
     } else {
@@ -390,8 +345,7 @@ var PlaneListView = Backbone.View.extend({
   
 
 $('#left-column').sortive({
-  item : 'div',
-  connectWith : '#right-column'
+  
 })
 .on('indexchange', function(e, data) {
   console.log('index change catch');
@@ -420,10 +374,10 @@ $('#left-column').sortive({
 
 
 
-// $('#right-column').sortive({
-//   item : 'div',
-//   
-// });
+$('#right-column').sortive({  
+  selfSort : false,
+  acceptive : false  
+});
 
 
 // setup
