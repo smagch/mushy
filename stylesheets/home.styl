@@ -8,6 +8,7 @@ div
 html, body
   margin 0
   padding 0
+  user-select(none)
 
 body 
   background #6B6B6B
@@ -30,54 +31,92 @@ header-height = 0px
   
 
   
-  
-#content
-  right-w = 520px
+right-w = 520px  
+#content  
   #left-column
     position absolute
-    border 1px solid black
-    background #D4D4D4      
     top 0
     left 0
     bottom 0
     right right-w
-    min-width 300px
   #right-column
     position absolute
     width right-w
     height 100%
     top header-height
     right 0
-
+    
     
 #article    
-  margin 16px
-  #header-input
+  margin 0
+  padding 0
+  background #D4D4D4
+  position absolute
+  top 0
+  left 0
+  bottom 0  
+  width 100%
+  overflow auto    
+  input#header-input
     font-size 2em
-  #description-input
-    font-size 1.3em    
-  #article-content
-    width 100%
+  textarea#description-input
+    font-size 1.3em
+  #article-editor
+    resize none
+    position absolute
+    width 100px
+    height 100px
+    top 0
+    left 0
+    z-index 1001
+    background #991532
+  #article-list
+    margin 0
+    padding 0
+    position relative    
     
-    li.tweet
+    
+#article-list  
+  li
+    position relative
+    list-style none
+    margin 0 0 40px
+    padding 0
+    &:hover
+      background #C6C6C6
+      .delete-button
+        display block
+    //width 100%
+    .delete-button
+      position absolute
+      right 2px
+      top 2px    
+      display none
+      color #121212
+      font-weight bold
+      cursor pointer
+      &:hover
+        color #898899
+    .add-text
+      position absolute
+      bottom -20px
       width 100%
-      display block      
-      list-style none
-      border 1px solid #D2D2D2
-      border-radius(4px)
-      padding 0
-      margin 0 auto      
-      a
-        float left
-        margin 10px
+      line-height 20px            
+      opacity 0
+      background #491B99
+      &:hover
+        opacity 1    
+    .twitter-quote-content
+      width 400px
+      margin 0 auto
       .tweet-user
         font-weight bold
         font-size 1.1em
         margin 4px 0 2px 4px
       .tweet-text
-        margin 0 8px 8px 8px  
-
-    
+        margin 0 8px 8px 8px
+      a
+        float right    
    
 #search-form
   $active-background = #AAA  
@@ -133,12 +172,13 @@ header-height = 0px
   border 1px solid #999
   overflow-y auto
   position absolute
-  top 200px
+  top 170px
   bottom 0px  
   width 100%
-
   ul
     //margin 20px
+    li
+      margin 10px
     padding 0
     display none
     position relative
@@ -177,6 +217,13 @@ li.tweet
     margin 4px 0 2px 4px
   .tweet-text
     margin 0 8px 8px 8px
+
+// article item components
+
+.text
+  background #D2D2D2
+  
+  
   
 .button
   border-radius(9px)

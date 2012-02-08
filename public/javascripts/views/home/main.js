@@ -1,14 +1,4 @@
-// require.config({
-//     'baseUrl' : '/javascripts'
-//   , 'paths' : {
-//         'jQuery' : 'libs/jquery/main'
-//       , 'underscore' : 'libs/underscore/underscore'
-//       , 'backbone' : 'libs/backbone/main'
-//     }
-// });
-
-//require(['jQuery', 'underscore', 'backbone' ], function ($, _, Backbone) {
-(function($, _, Backbone, JSONSelect, undefined){
+(function($, _, Backbone, undefined){
   
     // TODO - design tab
     // TODO - make them draggable
@@ -17,7 +7,8 @@
     // TODO - load entity image
     // TODO - add 'load before' and 'load after' buttons, with id search
     // TODO - create left column, look at backbone opensource example
-    
+    // TODO - make model type somewhere useful, twitter, facebook, image, text
+    // TODO - add margin bottom so that editor can scroll down
     var noop = function() {};
     // templates
     var Templates = (function(){
@@ -33,13 +24,22 @@
         var M = { };
         
         M.TwitterModel = Backbone.Model.extend({
-          type : 'twitter'
+          type: 'twitter',
+          defaults: {
+            type: 'twitter'
+          }
         });        
         M.TwitterImageModel = Backbone.Model.extend({
-          type : 'image'
+          type : 'image',
+          defaults: {
+            type: 'image'
+          }
         });
         M.FacebookModel = Backbone.Model.extend({
-          type : 'facebook'
+          type : 'facebook',
+          defaults: {
+            type: 'facebook'
+          }
         });
         
         return M;
@@ -48,23 +48,22 @@
     
     var Collections = (function(){
         var C = { };
-        C.QueryCollection = Backbone.Collection.extend({
-           
+        C.QueryCollection = Backbone.Collection.extend({           
             url : function() {
                 if( this.isPaging ) {
                     return this.nextUrl + '&callback=?';
                 }
                 return this.defaultUrl + '?' + $.param(this.params) + '&callback=?';
-            }
-          , params : { }
-          , queryKey : 'q'
-          , _queryString : function(str) {
+            },
+            params : { },
+            queryKey : 'q',
+            _queryString : function(str) {
                 if( str === undefined ) {
                     return this.params[this.queryKey];
                 }
                 this.params[this.queryKey] = str;
-            }          
-          , query : function(queryString) {
+            },          
+            query : function(queryString) {
                 var q = this._queryString();
                 if(!queryString) {
                     return q;
@@ -75,8 +74,8 @@
                     this.isRequesting(true);
                     this.fetch();
                 }                                                                
-            }
-          , queryNext : function() {
+            },         
+            queryNext : function() {
                  if( this.nextUrl && !this.isRequesting() ) {                     
                      this.isPaging = true;
                      this.isRequesting(true);
@@ -84,8 +83,13 @@
                          add : true
                      });
                  }
-             }              
-          , isRequesting : function( value ) {
+             },
+            parse: function(data) {
+              this.isRequesting(false);
+              return this._parse(data);
+            },
+            _parse: function() {},
+            isRequesting : function( value ) {
                 if( value === undefined ) {
                     return this._isRequesting;
                 }
@@ -95,13 +99,11 @@
                 } else {
                     this.trigger('requestend');
                 }                                
-            }
-          , nextUrl : undefined
-          , hasNext : function() {
+            },
+            nextUrl : undefined,
+            hasNext : function() {
                 return !!this.nextUrl;                        
-            }
-   
- 
+            } 
         });
         
         C['twitter-search'] = C.QueryCollection.extend({          
@@ -110,8 +112,8 @@
           , params : {
                 q : ''
             }
-          , parse : function( data ) {
-                this.isRequesting(false);
+          , _parse : function( data ) {
+                //this.isRequesting(false);
                 var models = data.results;
                 if(data.next_page) {
                      this.nextUrl = 'http://search.twitter.com/search.json' + data.next_page ;
@@ -143,8 +145,8 @@
               , screen_name : ''
             }
           , queryKey : 'screen_name'              
-          , parse : function( data ) {
-                this.isRequesting(false);
+          , _parse : function( data ) {
+                //this.isRequesting(false);
                 if( this.timeoutId ) {
                     clearTimeout(this.timeoutId);
                     this.timeoutId = undefined;
@@ -155,7 +157,6 @@
                 if( this.isPaging ) {
                     data.shift();
                 }
-                
                 _.each(data, function( model ) {
                     models.push({
                         text : model.text
@@ -190,8 +191,8 @@
               , include_entity : true
             }
           , queryKey : 'id'
-          , parse : function( data ) {
-                this.isRequesting(false);
+          , _parse : function( data ) {
+                //this.isRequesting(false);
                 var models = [ ];
                 models.push({
                     text : data.text
@@ -211,8 +212,8 @@
               , type : 'image'
               , perpage : 20
             }
-          , parse : function( data ) {
-                this.isRequesting(false);
+          , _parse : function( data ) {
+                //this.isRequesting(false);
                 var response = data.response;
                 var models = response.list;
                 console.dir( data );
@@ -330,25 +331,33 @@
                 } else {
                     this.createItem( data );
                 }
-            }
-          , removeItem : function( model ) {
-                console.log('remove');
-                var id = model.cid;
-                this.$('li[id='+ id + ']').remove();
+            },
+            getChildAt : function(index) {
+              return this.$el.children(':nth-child('+ (index+1) + ')');
+            },
+            removeItem : function( model, collection ) {
+              console.log('remove');
+              //var id = model.cid;
+              //this.$('li[id='+ id + ']').remove();
+              //var index = collection.indexOf(model);
+              //console.log('index : ' + index);
+              // TODO how to smartly remove item
+              this.render();
+              
+              
+              //this.getChildAt(index).remove();
                 
+            },                  
+            render : function () {
                 
-                
-            }                  
-          , render : function () {
-                
-                this.$el.html('');
-                if( this.collection.length ) {                    
-                    this.collection.each( this.createItem, this );
-                } else {                    
-                    // TODO make error msg nicely
-                    this.$el.append('<p class=nohit>no hit for keyword : ' + this.collection._query + '</p>');
-                }
-                return this;                    
+              this.$el.empty();
+              if( this.collection.length ) {                    
+                this.collection.each( this.createItem, this );
+              } else {                    
+                // TODO make error msg nicely
+                this.$el.append('<p class=nohit>no hit for keyword : ' + this.collection._query + '</p>');
+              }
+              return this;                    
             }  
         });
         
@@ -426,198 +435,122 @@
     })();
     
     
-    (function(M, C, V){
+    (function(M, C, V, undefined){
         
         M['MashUpModel'] = Backbone.Model.extend({
-            types : 'twitter facebook text'.split(/\s/g)
+                        
+            //types : 'twitter facebook text'.split(/\s/g)
         });
         
         C['MashUpCollection'] = Backbone.Collection.extend({
-            model : M.MashUpModel          
+            model : M.MashUpModel
+          // , initialize : function(options) {
+          //       this.on('add', this.addHandler, this );
+          //   }
+          // , addHandler : function(models) {
+          //       if( _.isArray(model) ) {
+          //           
+          //       } else {
+          //           
+          //       }
+          //   }
+          // , checkIndex : function(model) {
+          //       
+          //   }     
         });
         
         V.ArticleItem = { };
         
         V.ArticleItem['twitter'] = V.ItemBaseView.extend({
-            template : Templates['twitter-template']
-          , className : 'clearfix tweet'
+            template : Templates['twitter-quote-template']
+          , className : 'clearfix twitter-quote'
         });
         
         V.ArticleItem['facebook'] = Backbone.View.extend({
           
         });
         
-        V.ArticleItem['text'] = Backbone.View.extend({
-            
+        V.ArticleItem['text'] = V.ItemBaseView.extend({
+          template : Templates['text-template'],
+          className : 'clearfix text'
         });
                         
         V.ArticleView = Backbone.View.extend({
-            el : '#article'
-          , initialize : function() {
-                this.collection = new C['MashUpCollection']();
-                this.collection.on('add', this.addItem, this );
-                this.collection.on('reset', this.render, this );
-                this.collection.on('change', this.change, this );
-            }
-          , events : {
+          el : '#article',
+          initialize : function() {
+            this.$editor = this.$('#article-editor');
+            this.$articleItems = this.$('#article-list');
+            this.collection = new C['MashUpCollection']();
+            this.collection
+              .on('add', this.addItem, this )
+              .on('reset', this.render, this )
+              .on('change', this.change, this );                                
             
-            }
-          , change : function(e) {
-                console.log('change');
-                console.dir( e );
-            }
-          , addItem : function( model ) {
-                console.log('add item article');
-                // model.type
-                console.log('model.type : ' + model.type);
-                var targetView = V.ArticleItem[model.type];
-                if( !targetView ) {
-                    throw new Error('model type : ' + model.type + ' is invalid');
-                }
-                var view = new targetView({ model : model });
-                this.$el.append(view.render().el);
-            }
-          , render : function() {
-                console.log('render article');
-            }
+            this.$el
+              .sortive({
+                itemTag : 'li'                  
+              })
+              .on('indexchange', _.bind(this.setMarker, this))
+              .on('itemmove', _.bind(this.moveItem, this))
+              .on('sortfocusin', _.bind(this.focusIn, this))
+              .on('sortfocusout', _.bind(this.focusOut, this));
+          },
+          events : {
+            'click .add-text' : 'moveInput',
+            'focusin #article-editor' : 'focusIn',
+            'focusout #article-editor' : 'focusOut'
+          },
+          change : function(e) {
+            console.log('change');
+            console.dir( e );
+          },
+          moveInput : function(e) {
+            var offset = $(e.target).offset();
+            this.$editor.offset(offset);                
+          },
+          setMarker : function(e, data) {
+            console.log('setMarker');
+          },
+          moveItem : function(e, data) {
+            console.log('moveItem');
+          },
+          focusIn : function(e) {
+            console.log('focus in');
+              
+          },
+          focusOut : function(e) {
+              console.log('focus out');
+              // var index;
+              //                 var model = new M['MashUpModel']({
+              //                   text : 'hoge'
+              //                 });
+              //                 
+              //                 this.collection.add(model);
+          },
+          addItem : function( model ) {
+              console.log('add item article');
+              // model.type
+              var type = model.get('type');
+              var targetView = V.ArticleItem[type];
+              if( !targetView ) {
+                  throw new Error('model type : ' + type + ' is invalid');
+              }
+              var view = new targetView({ model : model });
+              this.$articleItems.append(view.render().el);
+          }
+        , render : function() {
+              console.log('render article');
+          }
         });
         
       
     })(Models, Collections, Views);
 
-    (function($, undefined){
-    		
-        var isDirty = false
-    			, offsetX
-    			, offsetY
-    			, $el
-    			, isEnter = false
-    			, selector
-    			, $dropTargets
-    			, requestAnimFrame = (function(){			
-    				return window.requestAnimationFrame || 
-    						window.mozRequestAnimationFrame ||
-    						window.oRequestAnimationFrame ||
-    						window.msRequestAnimationFrame ||
-    						function(callback) {
-    								window.setTimeout(callback, 1000 / 60);
-    						};
-    		})();
 
-        function mouseMoveHandler(e) {
-    				if(isDirty) {
-    						return;
-    				}
-    				
-    				isDirty = true;
-    				var x = offsetX + e.clientX
-    					, y = offsetY + e.clientY;
-
-    				requestAnimFrame(function() {
-    						$el.offset({
-    								top : y
-    							, left : x
-    						});
-    						isDirty = false;
-    				});								
-        }
-        
-        
-        function mouseUpHandler(e) {
-    			$(document)
-    				.off( 'mousemove', selector, mouseMoveHandler )
-    				.off( 'mouseup', selector, mouseUpHandler );
-    			
-    			
-    			var centerX = e.clientX + $el.width() * 0.5;
-    			var right = $dropTargets.offset().left + $dropTargets.outerWidth();
-    			console.log('$dropTargets.offset().left : ' + $dropTargets.offset().left);
-    			
-    			
-    			console.dir( e );
-    			console.log('centerX : ' + centerX);
-    			console.log('right : ' + right);
-    			// TODO rewrite nicely
-    			if(centerX < right ) {
-    			    console.log('drop');
-    			    console.log('e.data.id : ' + e.data.id);        			    
-    			    $dropTargets.trigger('drop', e.data.id );    			            			    
-    			}        			        			        	
-    			
-    			$el.remove();
-    			$el = undefined;        			
-        }
-
-        function mouseDownHandler(e) {
-            //$el = $(this);
-            
-            var $self = $(this)
-              , offset = $self.offset();
-              
-            if( $el ) {
-              throw new Error('$el is not removed')
-              mouseUpHandler();
-            }
-            
-            $el = $self.clone().css({
-                left : offset.left
-              , top : offset.top
-              , position : 'absolute'
-              , width : $self.width()
-              , height : $self.height()
-            }).appendTo('body');
-            
-            offsetX = $el.offset().left - e.clientX
-        		offsetY = $el.offset().top - e.clientY;			
-        		selector = e.data.selector;
-        		
-        		var data = $.extend({
-        		    id : $el.attr('id')
-        		}, e.data);
-        		
-        		$el.attr('id', '');
-        		
-        		$(document)
-        		  .on( 'mousemove', data.selector, data, mouseMoveHandler )
-        		  .on( 'mouseup', data.selector, data, mouseUpHandler );
-        		
-        		// TODO use namespace??  
-        		if( $dropTargets ) {
-        		    $dropTargets
-        		               		    
-        		}
-        }                                  
-
-        $.fn['dragBox'] = function(options) {
-            var selector = options.target;
-            if( !_.isString(selector) ) {
-                throw new Error('target should be selector string');
-            }
-            var data = {
-                selector : selector              
-            };
-            $(this).on( 'mousedown', selector, data, mouseDownHandler );
-        }
-
-        $.fn['dropTarget'] = function(options) {
-            if( $dropTargets ) {
-                $dropTargets.add(this);
-            } else {
-                $dropTargets = $(this);
-            }
-            return this;
-            
-            
-            // var target = options.target;
-            //                 if( _.isString(target) ) {
-            //                     throw new Error('target should be string');
-            //                 }
-            //$(this).on( 'mouseover', mouseOverHandler );
-
-            //$(this).on('mousedown', target, mouseDownHandler );
-        }
-
-    })(jQuery);
+    
+    
+    
+    
     (function(V){
         
         V.RightColumn = Backbone.View.extend({
@@ -651,9 +584,7 @@
                     console.log('category : ' + category);            
                     content.changeCategory( category );
                 });
-                                
-
-              	
+                                              	
                 content.on('viewchange', this.viewChangeHandler, this );
             }        
           , events : {
@@ -678,73 +609,63 @@
                 //this.collection = new C['MashUpCollection']();
                 //this.collection.on('add', this.addItem, this );
                 this.articleView = new V.ArticleView();
+                
             }
           , events : {
             
             }
           , addModel : function( model ) {
-                this.articleView.collection.add( model );
+              this.articleView.collection.add( model );
             }                
         });
 
         
         
         V.AppView = Backbone.View.extend({
-            el : '#content'
-          , initialize : function() {
-                this.leftColumn = new V.LeftColumn();
-                this.rightColumn = new V.RightColumn();
-                // TODO why container is draggable??
-                // $('#article-content').sortable({
-                //                    revert : true
-                //                })
-                //                .on('sortreceive', function(e) {
-                //                    console.log('recieve');
-                //                    console.dir( e );
-                //                    currentCollection.remove(draggingModel);                  
-                //                })
-                //                .on('sortcreate', function(e) {
-                //                    console.log('sort create');
-                //                    console.dir( e );
-                //                });
-              	//.disableSelection();
-              	var self = this;
-              	var draggingModel
-              	  , currentCollection;
-              	$('#search-content').dragBox({
-                	  target : 'li'
-                });
-                
-                $('#article').dropTarget({
-                    //target : ''
-                }).on('drop', _.bind( this.dropHandler, this) );            
-                
-              	// $('#search-content').on('mousedown', V.ItemBaseView.prototype.tagName , function(e) {
-              	//                   var id = $(this).draggable({
-              	//                       connectToSortable : '#article-content'
-              	//                     , helper : 'clone'
-              	//                     , addClasses : false
-              	//                     , appendTo : '#article-content'
-              	//                   }).attr('id');
-              	//                   console.log('id : ' + id);     
-              	//                   currentCollection = self.rightColumn.currentCollection();             
-              	//                   draggingModel = currentCollection.getByCid(id);
-              	//                   console.dir( draggingModel );
-              	//                   $(document).one('mouseup', $(this).destroy );
-              	//                   e.stopPropagation();
-              	//                 })
+          el : '#content',
+          initialize : function() {
+            this.leftColumn = new V.LeftColumn();
+            this.rightColumn = new V.RightColumn();
+              
+                                                                                
+          	var self = this;
+            var draggingModel,
+                currentCollection;
               	
-            }
-          , events : {
+            $('#search-content')
+            .sortive({
+              itemTag : 'li',
+              selfSort : false
+            })
+            .on('itemsend', _.bind( this.sendItem, this) );
+                                    
             
-            }
-          , dropHandler : function( e, id ) {
-                console.log('id : ' + id);
-                var currentCollection = this.rightColumn.currentCollection();
-                var model = currentCollection.getByCid(id);                
-                console.dir( model );
-                this.leftColumn.addModel(model);
-                currentCollection.remove( model );
+               // $('#search-content').dragBox({
+                //                    target : 'li'
+                //                 });
+                //                 
+                //                 $('#article').dropTarget({
+                //                     //target : ''
+                //                 }).on('drop', _.bind( this.dropHandler, this) );            
+                
+              	
+            },
+            events : {
+            
+            },
+            sendItem : function( e, data ) {            
+              var currentCollection = this.rightColumn.currentCollection();
+              
+              //var model = currentCollection.getByCid(id);                
+              var model = currentCollection.at(data.fromIndex);
+              var json = model.toJSON();
+              console.dir( json );
+              
+              this.leftColumn.addModel(model.toJSON() );
+              currentCollection.remove( model);
+              
+              
+              
             }
         });
         
@@ -758,4 +679,4 @@
     window.Views = Views;   
     var app = new Views.AppView();
     
-})(jQuery, _, Backbone, JSONSelect);
+})(jQuery, _, Backbone);

@@ -19,6 +19,10 @@
     // array of elements or jquery object
     acceptiveFrom : '*',
     
+    // TODO
+    // if true, clone is automatically removed,
+    // if false, clone is passed when mouseup
+    cloneRemove : false,
     // TODO - it may be useful to add option like below
     // insertive : true,
     // insertiveTo : '*', // potentially selector, element, jQuery object
@@ -226,6 +230,7 @@
     //e.data.$sortive.trigger('itemdropped', eventData());
     var dataToSend = eventData();
     if( dataToSend ){
+      // TODO - send clone itself
       if( dataToSend.isSelfSort) {
         dataToSend.$target.trigger('itemmove', dataToSend);
       } else {
@@ -306,9 +311,9 @@
         data.currentIndex = index;
         
         eventData({
-          originalIndex : data.originalIndex,
+          fromIndex : data.originalIndex,
           isSelfSort : targetRect.isSelfSort,
-          index : index,
+          toIndex : index,
           direction : direction,
           // current elements dimension
           dimension : {
