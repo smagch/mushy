@@ -6,7 +6,8 @@
         input#header-input
         label description
         textarea#description-input
-        ol#article-content
+        textarea#article-editor
+        ol#article-list
     #right-column
       #search-tab
         ul                
@@ -27,29 +28,37 @@
         ul#search-content-twitter-id initial id
         ul#search-content-twitter-image initial image
         ul#search-content-facebook initial facebook
+script(id='text-template', type='text/template')
+  | <span>model.text</span>
 script(id='twitter-quote-template', type='text/template')
-  | <div class='delete-button' ></div>
-  | <div class='add-text'>click to add content</div>
-  | <div class='twitter-quote-content'></div>
-script(id='twitter-template', type='text/template')
-  |     <a href='http://twitter.com/<%= model.from_user %>' >
+  | <span class='delete-button' >x</span> 
+  | <div class='twitter-quote-content clearfix'>
+  |   <div class='tweet-user'><%= model.from_user %></div>
+  |   <div class='tweet-text'><%= model.text %></div>
+  |   <a href='http://twitter.com/<%= model.from_user %>' >
   |       <img src=<%= model.profile_image_url %> >
-  |     </a>
-  |     <div class='tweet-user'><%=model.from_user%></div>
-  |     <div class='tweet-text'><%= model.text %></div>
+  |   </a>   
+  | </div>
+  | <div class='add-text'>click to add content</div>
+script(id='twitter-template', type='text/template')
+  | <a href='http://twitter.com/<%= model.from_user %>' >
+  |   <img src=<%= model.profile_image_url %> >
+  | </a>
+  | <div class='tweet-user'><%=model.from_user%></div>
+  | <div class='tweet-text'><%= model.text %></div>
 script(id='facebook-template', type='text/template')        
-  |     <a href='http://facebook.com/profile.php?id=<%= model.from.id %>' >
-  |       <img src='https://graph.facebook.com/<%= model.from.id %>/picture'>
-  |     </a>
-  |     <div class='tweet-user'><%= model.from.name %></div>
-  |     <div class='tweet-text'><%= model.message %></div>
+  | <a href='http://facebook.com/profile.php?id=<%= model.from.id %>' >
+  |   <img src='https://graph.facebook.com/<%= model.from.id %>/picture'>
+  | </a>
+  | <div class='tweet-user'><%= model.from.name %></div>
+  | <div class='tweet-text'><%= model.message %></div>
 script(id='image-template', type='text/template')
-  |     <div>
-  |       <img src='<%= model.small_thumbnail %>' >
-  |     </div>
-script(src='/javascripts/libs/jquery/jquery-1.7.1.js')
-script(src='/javascripts/jquery-ui-1.8.17.custom.min.js')
-script(src='/javascripts/libs/underscore/underscore.js')
-script(src='/javascripts/libs/backbone/backbone.js')
-script(src='/javascripts/jsonselect.js')
+  | <div>
+  |   <img src='<%= model.small_thumbnail %>' >
+  | </div>
+script(src='/javascripts/libs/jquery-1.7.1.js')
+script(src='/javascripts/libs/jquery-ui-1.8.17.custom.min.js')
+script(src='/javascripts/libs/underscore.js')
+script(src='/javascripts/libs/backbone.js')
+script(src='/javascripts/sortive.js')
 script(src='/javascripts/views/home/main.js')
