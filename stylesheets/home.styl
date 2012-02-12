@@ -38,7 +38,7 @@ right-w = 520px
     top 0
     left 0
     bottom 0
-    right right-w
+    right right-w    
   #right-column
     position absolute
     width right-w
@@ -76,47 +76,47 @@ right-w = 520px
     position relative    
     
     
-#article-list  
-  li
-    position relative
-    list-style none
-    margin 0 0 40px
-    padding 0
-    &:hover
-      background #C6C6C6
-      .delete-button
-        display block
-    //width 100%
+
+li.article-item
+  position relative
+  list-style none
+  margin 0
+  padding 0
+  &:hover
+    background #C6C6C6
     .delete-button
-      position absolute
-      right 2px
-      top 2px    
-      display none
-      color #121212
+      display block
+  //width 100%
+  .delete-button
+    position absolute
+    right 2px
+    top 2px    
+    display none
+    color #121212
+    font-weight bold
+    cursor pointer
+    &:hover
+      color #898899
+  .add-text
+    position absolute
+    bottom -20px
+    width 100%
+    line-height 20px            
+    opacity 0
+    background #491B99
+    &:hover
+      opacity 1
+  .twitter-quote-content
+    width 400px
+    margin 0 auto
+    .tweet-user
       font-weight bold
-      cursor pointer
-      &:hover
-        color #898899
-    .add-text
-      position absolute
-      bottom -20px
-      width 100%
-      line-height 20px            
-      opacity 0
-      background #491B99
-      &:hover
-        opacity 1    
-    .twitter-quote-content
-      width 400px
-      margin 0 auto
-      .tweet-user
-        font-weight bold
-        font-size 1.1em
-        margin 4px 0 2px 4px
-      .tweet-text
-        margin 0 8px 8px 8px
-      a
-        float right    
+      font-size 1.1em
+      margin 4px 0 2px 4px
+    .tweet-text
+      margin 0 8px 8px 8px
+    a
+      float right    
    
 #search-form
   $active-background = #AAA  
@@ -166,6 +166,12 @@ right-w = 520px
   
 #search-input  
   font-size 2em
+  
+#related
+  display none
+  position absolute
+  &.active
+    display block
 
 #search-content      
   border-top-radius(9px)
@@ -179,6 +185,8 @@ right-w = 520px
     //margin 20px
     li
       margin 10px
+      &.selected
+        background #B2B2B2
     padding 0
     display none
     position relative
@@ -189,7 +197,7 @@ right-w = 520px
       content ''
       width 100%
       height 100px
-      background transparent url('../images/bigrotation2.gif') no-repeat center      
+      background transparent url('../images/bigrotation2.gif') no-repeat center
     li.image
       display inline-block
       vertical-align middle

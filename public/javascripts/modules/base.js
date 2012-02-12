@@ -1,17 +1,13 @@
-define(['modules/left-view', 'modules/right-view', 'modules/models', 'modules/util'], function(LV, RV, M, U){
+define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV, RV, U){
   // base view
-  var B = {
-    Views: {}
-  },
-  V = B.Views;
   
-  V.RightColumn = Backbone.View.extend({
+  var RightColumn = Backbone.View.extend({
     el : '#right-column',
     currentCollection : function() {
       return this.contentView.currentCollection();
     },
     initialize : function () {
-      var content = this.contentView = new RV.ContentView();
+      var content = this.contentView = RV.getInstance();//new RV.ContentView();
       this.$searchInput = $('#search-input');
       $('#search-tab').tabs()
         .on('tabsselect', function(e, ui) {
@@ -55,12 +51,12 @@ define(['modules/left-view', 'modules/right-view', 'modules/models', 'modules/ut
       }
   });
   
-  V.LeftColumn = Backbone.View.extend({
+  var LeftColumn = Backbone.View.extend({
     el : '#article',
     initialize : function() {
       //this.collection = new C['MashUpCollection']();
       //this.collection.on('add', this.addItem, this );
-      this.articleView = new LV.ArticleView();          
+      this.articleView = LV.getInstance();//new LV.ArticleView();          
     },
     events : {
     
@@ -70,11 +66,11 @@ define(['modules/left-view', 'modules/right-view', 'modules/models', 'modules/ut
     }                
   });
     
-  V.AppView = Backbone.View.extend({
+  var AppView = Backbone.View.extend({
     el: '#content',
     initialize: function() {
-      this.leftColumn = new V.LeftColumn();
-      this.rightColumn = new V.RightColumn();                                                                                  
+      this.leftColumn = new LeftColumn();
+      this.rightColumn = new RightColumn();                                                                                  
       var self = this;          
       $('#search-content')
       .sortive({
@@ -88,23 +84,24 @@ define(['modules/left-view', 'modules/right-view', 'modules/models', 'modules/ut
     },
     sendItem: function( e, data ) {            
       var currentCollection = this.rightColumn.currentCollection();
-        
+      console.log('data.fromIndex : ' + data.fromIndex);
+              
         //var model = currentCollection.getByCid(id);                
       var model = currentCollection.at(data.fromIndex);
-      var json = model.toJSON();
-      console.dir( json );
+      //var json = model.toJSON();
+      //console.dir( json );
       
       this.leftColumn.addModel(model.toJSON() );
       currentCollection.remove( model);                                          
     }
   });
   
-  B.start = function() {
-    console.log('start');
-    U.precompileTemplates();
-    console.log('tempcomp');
-    new V.AppView();
-  }
-  
-  return B;
+  return {
+    start: function() {
+      console.log('start');
+      U.precompileTemplates();
+      console.log('tempcomp');
+      new AppView();
+    }
+  };
 });
