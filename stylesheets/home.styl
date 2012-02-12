@@ -63,13 +63,8 @@ right-w = 520px
     font-size 1.3em
   #article-editor
     resize none
-    position absolute
-    width 100px
-    height 100px
-    top 0
-    left 0
-    z-index 1001
-    background #991532
+    width 100%
+    background none
   #article-list
     margin 0
     padding 0
@@ -85,8 +80,20 @@ li.article-item
   &:hover
     background #C6C6C6
     .delete-button
+    .add-button
       display block
+      
   //width 100%
+  .add-button
+    display none
+    position absolute
+    height 30px
+    width 30px
+    bottom @height * -0.2
+    left 10px
+    font-size 20px
+    background #303030
+    cursor pointer
   .delete-button
     position absolute
     right 2px

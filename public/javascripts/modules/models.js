@@ -38,6 +38,11 @@ define(function() {
     },
     params : null,
     queryKey : 'q',
+    toJSONWithCid: function() {
+      return this.map(function(model){         
+        return (model.toJSON().cid = model.cid);         
+      });
+    },
     _queryString : function(str) {
       if( str === undefined ) {
         return this.params[this.queryKey];

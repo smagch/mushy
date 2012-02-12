@@ -11,6 +11,25 @@ define(function(){
     U.templates = templates;
   };
   
+  U.getJSON = function(models) {
+    if(!_.isArray(models)) {
+      var ret = models.toJSON();
+      ret.cid = models.cid;
+      return ret;  
+    } 
+    return models.map(function(model) {
+      return U.getJSON(model);
+    });    
+  }
+  
+  U.toJSONArray = function(model) {
+    var ret = U.getJSON(model);
+    _.isArray(ret) || (ret = [ret]);
+    return ret;
+  }
+  
+  
+  
   // U.ItemBaseView = Backbone.View.extend({
   //   tagName : 'li',
   //   initialize : function( options ) {

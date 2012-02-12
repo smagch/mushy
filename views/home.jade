@@ -55,8 +55,9 @@ script(id='image-list-template', type='text/template')
   | <% }); %>
 script(id='quote-list-template', type='text/template')
   | <% _.each(models, function(model) { %>
-  |   <li class='article-item clearfix twitter-quote' model-data-cid='<%= model.cid %>'>
+  |   <li class='article-item clearfix twitter-quote' data-model-cid='<%= model.cid %>'>
   |     <span class='delete-button' >x</span>
+  |     <span class='add-button' >+</span>
   |     <% if(model.type === 'twitter') { %>
   |       <div class='twitter-quote-content clearfix'>
   |         <div class='tweet-user'><%= model.from_user %></div>
@@ -65,6 +66,8 @@ script(id='quote-list-template', type='text/template')
   |           <img src=<%= model.profile_image_url %> >
   |         </a>
   |       </div>
+  |     <% } else if(model.type === 'text') { %>
+  |       <div class='article-item-text'><%= model.text %></div>
   |     <% } else { %>
   |       <p>unknown type: <%= model.type %><p>
   |   <% } %>
