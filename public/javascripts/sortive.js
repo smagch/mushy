@@ -8,7 +8,7 @@
   var defaults = {
     item: 'div',
     zIndex: 1000,
-    //appendTo: '#article',
+    appendTo: 'body',
     cloneClass: 'dragging',
     selectClass: 'selected',
     // selector
@@ -197,16 +197,18 @@
     $clone = $self
       .clone()
       .css({
-        left: $scrollEl.scrollLeft() + offset.left,
-        top: $scrollEl.scrollTop() + offset.top,
+        //left: $scrollEl.scrollLeft() + offset.left,
+        //top: $scrollEl.scrollTop() + offset.top,
+        left: offset.left,
+        top: offset.top,
         position: 'absolute',
         width: w,
         height: h,
         zIndex: options.zIndex
       })
       .addClass(options.cloneClass)
-      .appendTo(options.scrollElement),
-      //.appendTo(options.appendTo),
+      //appendTo(options.scrollElement),
+      .appendTo(options.appendTo),
 
     rects = ( !!acceptives.length && getRects(acceptives, $sortive, index, options)),
   	
@@ -287,14 +289,19 @@
     var data = e.data,
     $clone = data.$clone,    
     offset = {
-      left : data.$scrollEl.scrollLeft() + data.offsetX + e.clientX,//e.clientX,
-      top : data.$scrollEl.scrollTop() + data.offsetY + e.clientY//e.clientY
+      //left : data.$scrollEl.scrollLeft() + data.offsetX + e.clientX,
+      //top : data.$scrollEl.scrollTop() + data.offsetY + e.clientY
+      left: data.offsetX + e.clientX,
+      top: data.offsetY + e.clientY
     },        
     rects = e.data.rects,
     // TODO - currently only support up and down
     direction;
                     
     $clone.css(offset);
+    
+    offset.left += data.$scrollEl.scrollLeft();
+    offset.top += data.$scrollEl.scrollTop();
     if( !data.rects ) {
       return;
     }
