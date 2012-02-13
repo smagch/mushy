@@ -67,7 +67,7 @@ script(id='quote-list-template', type='text/template')
   |         </a>
   |       </div>
   |     <% } else if(model.type === 'text') { %>
-  |       <div class='article-item-text'><%= model.text %></div>
+  |       <div class='article-item-text'><%= marked(_.escape(model.text)) %></div>
   |     <% } else { %>
   |       <p>unknown type: <%= model.type %><p>
   |   <% } %>
@@ -105,5 +105,7 @@ script(src='/javascripts/libs/jquery-ui-1.8.17.custom.min.js')
 script(src='/javascripts/libs/underscore.js')
 script(src='/javascripts/libs/backbone.js')
 script(src='/javascripts/sortive.js')
+script(src='/javascripts/libs/marked.js')
+script(src='/javascripts/libs/jquery.autosize.js')
 //script(src='/javascripts/views/home/main.js')
 script(src='/javascripts/libs/require.js', data-main='/javascripts/main.js')

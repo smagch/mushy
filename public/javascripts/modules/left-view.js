@@ -77,7 +77,10 @@ define(['modules/util'], function(U) {
     template: 'quote-list-template',
     initialize : function() {
       this.template = U.templates[this.template];
-      this.$editor = this.$('#article-editor').hide();
+      this.$editor = this.$('#article-editor');
+      this.$editor
+        .autosize()
+        .hide();
       this.$articleItems = this.$('#article-list');
       this.collection = new C['MashUpCollection']();
       this.collection
@@ -108,8 +111,12 @@ define(['modules/util'], function(U) {
     },
     leaveTextEdit: function(e) {
       var val = this.$editor.val(),
-        data = this.$editor.data('target'),
-        model = data.model,
+        data = this.$editor.data('target');
+      if(!data) {
+        throw new Error('no data');
+      }
+      
+      var model = data.model,
         index = data.index;
       // if editing text, set text
 
@@ -127,52 +134,34 @@ define(['modules/util'], function(U) {
       }
       this.$editor
         .removeData('target')
+        .val('')
         .hide();
     },
     editText: function(e) {
-      var $target = $(e.target),
-        $parent = $target.parent(),
-        cid = $parent.attr('data-model-cid'),
+      var $target = $(e.target).parents('li'),        
+        cid = $target.attr('data-model-cid'),
         model = this.collection.getByCid(cid);
       
-      $target.hide();            
-      this.$editor
+      $target.hide();
+      this.$editor              
         .data('target', {
           model: model,
           $target: $target
         })
         .val(model.get('text'))
         .show()
-        .insertBefore($parent[0])
+        .insertBefore($target[0])
+        .trigger('autosize')
         .focus();
-        
-      e.stopPropagation();
-      
-      // $editor.one('focusout', _.bind(function(e) {
-      //   var val = this.$editor.val();
-      //   if(val.replace(/\s+/g).length) {
-      //     // create new test model
-      //     // var textModel = new M['MashUpModel']({
-      //     //   type: 'text',
-      //     //   text: val
-      //     // });
-      //     model.set('text', val, {
-      //       silent: true
-      //     });      
-      //     $target.text(val);
-      //   }
-      //   this.$editor.val('');
-      //   this.$editor.hide();
-      //   this.updateCache();
-      // }, this)).focus();    
-      
+              
+      e.stopPropagation();            
     },   
     clickEditor: function(e) {
       e.stopPropagation();
     },
     showMenu: function(e) {
       // detect model from e.target
-      var $target = $(e.target).parent(),
+      var $target = $(e.target).parents('li'),
         cid = $target.attr('data-model-cid'),
         model = this.collection.getByCid(cid),
         index = this.collection.indexOf(model) + 1;            
@@ -228,7 +217,7 @@ define(['modules/util'], function(U) {
     },
     deleteClicked: function(e) {
       console.log('remove');
-      var $target = $(e.target).parent(),
+      var $target = $(e.target).parents('li'),
         cid = $target.attr('data-model-cid');
       
       var model = this.collection.getByCid(cid);
@@ -242,8 +231,10 @@ define(['modules/util'], function(U) {
       var cid = model.cid;
         element = this.template({models: U.toJSONArray(model)}),
         $target = this.$articleItems.find('[data-model-cid='+cid+']');
-        
-      $target.html(element);      
+            
+      $target
+        .after(element)
+        .remove();
       this.updateCache();
     },
     updateCache: function() {
