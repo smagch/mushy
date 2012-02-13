@@ -6,28 +6,29 @@
   // TODO - add axis
   // TODO - multi drag 
   var defaults = {
-    itemTag : 'div',
-    zIndex : 1000,
-    appendTo : 'body',
-    cloneClass : 'dragging',
-    selectClass : 'selected',
+    item: 'div',
+    zIndex: 1000,
+    //appendTo: '#article',
+    cloneClass: 'dragging',
+    selectClass: 'selected',
+    // selector
+    scrollElement: 'self',
+    delay: 100,
     
-    delay : 100,
-    
-    acceptive : true,
+    acceptive: true,
     // could be selector string, element, 
     // array of elements or jquery object
-    acceptiveFrom : '*',
+    acceptiveFrom: '*',
     
     // TODO
     // if true, clone is automatically removed,
     // if false, clone is passed when mouseup
-    cloneRemove : false,
+    cloneRemove: false,
     // TODO - it may be useful to add option like below
     // insertive : true,
     // insertiveTo : '*', // potentially selector, element, jQuery object
     
-    selfSort : true
+    selfSort: true
   },
   
   // store all sortive element
@@ -43,36 +44,40 @@
       var options = $.extend({}, defaults, options);
       // reset all sortive elements
       // determine which containers is acceptive to this
-      this.each(function() {
-        container.push(this);        
-      });
-      
       this
         .data('sortive', options)
-        .on('mousedown.sortive', options.itemTag, downHandler);
-        
+        .on('mousedown.sortive', options.item, downHandler)
+        .each(function() {
+          container.push(this);        
+        });
+                              
       return this;
     },
     destroy : function() {
       
       this
-      .removeData('sortive')
-      .off('mousedown.sortive', downHandler)
-      .each(function() {
-        var index = _.indexOf(this);
-        container.splice(index, 1);
-      });      
+        .removeData('sortive')
+        .off('mousedown.sortive', downHandler)
+        .each(function() {
+          var index = _.indexOf(this);
+          container.splice(index, 1);
+        });      
             
       return this;
     },
     
-    options : function(options) {
+    options : function(options) {      
       var data = this.data('sortive');
       if(!options) {
         return data;
       }
       
-      $.extend(data, options);
+      $.extend(data, options);      
+      // if(data.scrollElement === 'self') {
+      //   data.scrollElement = $(this);
+      // } else {
+      //   data.scrollElement = $(data.scrollElement);
+      // }
     },
     
     getAcceptive : function() {
@@ -97,25 +102,34 @@
     
   },
   
-  
-  getRects = function(sortives, $target, elementIndex) {      
+  getRects = function(sortives, $target, elementIndex, options) {
+    // TODO cache scrollEl somewhere
+    var $scrollEl = options.scrollElement === 'self' ? $target : $(options.scrollElement),    
+      scrollTop = $scrollEl.scrollTop(),
+      scrollLeft = $scrollEl.scrollLeft();
+    function toGlobal(offset) {
+      return {
+        left: offset.left + scrollLeft,
+        top: offset.top + scrollTop
+      };
+    }
+      
     return _.map(sortives, function(sortive) {
       var $sortive = $(sortive),
-      selfOffset = $sortive.offset(),
+      selfOffset = toGlobal($sortive.offset()),
       rect = _.extend( {}, selfOffset, {
         right : selfOffset.left + $sortive.width(),
         bottom : selfOffset.top + $sortive.height()
-      }),
+      }),      
       dimensions = {
         top : [],
         bottom : []
       },
       isSelfSort = $target.is(sortive);
       
-      // TODO add selector for children
-      $sortive.children().each(function() {      		
+      $sortive.children(options.item).each(function() {      		
 		    var $self = $(this),
-		        offset = $self.offset();		    
+		        offset = toGlobal($self.offset());		    
 			  dimensions.top.push(offset.top);
 			  dimensions.bottom.push(offset.top + $self.height());			  			  			  
 		  });
@@ -125,7 +139,7 @@
         dimensions.top.splice(elementIndex, 1);
         dimensions.bottom.splice(elementIndex, 1);
       }		  
-		  
+
     	return {
     	  // bounding rect of sortive instance
     	  rect : rect,
@@ -151,7 +165,6 @@
     
     function timeoutHandler(e) {
       if(timeoutId) {
-        console.log('timeout!');
         clearTimeout(timeoutId);
       }
     }
@@ -173,42 +186,47 @@
     w = $self.width(),
     h = $self.height(),
     index = $self.index(),
-           	 
-    $clone = $self
-      .clone()
-      .css({
-        left : offset.left,
-        top : offset.top,
-        position : 'absolute',
-        width : w,
-        height : h,
-        zIndex : options.zIndex
-      })
-      .addClass(options.cloneClass)
-      .appendTo(options.appendTo),
-
-    offsetX = $clone.offset().left - e.clientX,
-   	offsetY = $clone.offset().top - e.clientY,
+           	       
+    offsetX = offset.left - e.clientX,
+   	offsetY = offset.top - e.clientY,
     
     acceptives = $sortive.sortive('getAcceptive'),
     
-    rects = ( !!acceptives.length && getRects(acceptives, $sortive, index)),
+    $scrollEl = options.scrollElement === 'self' ? $sortive : $(options.scrollElement),    
+    
+    $clone = $self
+      .clone()
+      .css({
+        left: $scrollEl.scrollLeft() + offset.left,
+        top: $scrollEl.scrollTop() + offset.top,
+        position: 'absolute',
+        width: w,
+        height: h,
+        zIndex: options.zIndex
+      })
+      .addClass(options.cloneClass)
+      .appendTo(options.scrollElement),
+      //.appendTo(options.appendTo),
+
+    rects = ( !!acceptives.length && getRects(acceptives, $sortive, index, options)),
   	
   	data = {
-  	  $original : $self,
-  	  $clone : $clone,
-  	  rects : rects,  		  
-  	  offsetX : offsetX,
-  	  offsetY : offsetY,
-  	  centerOffsetX : w * 0.5,
-  	  centerOffsetY : h * 0.5,
-  	  height : h,
-      originalIndex : index,
-      $sortive : $sortive,
-  	  options : options,
+  	  $original: $self,
+  	  $scrollEl: $scrollEl,
+  	  $clone: $clone,
+  	  $sortive: $sortive,
+  	  rects: rects,  		  
+  	  offsetX: offsetX,
+  	  offsetY: offsetY,
+  	  centerOffsetX: w * 0.5,
+  	  centerOffsetY: h * 0.5,
+  	  height: h,
+      originalIndex: index,
+      
+  	  options: options,
   	  currentIndex : (options.selfSort && index)
   	};  	
-    
+
     //currentIndex = data.originalIndex;
     $self.addClass(options.selectClass),
   	$(document)
@@ -267,10 +285,10 @@
   
   moveHandler = function(e) {
     var data = e.data,
-    $clone = data.$clone,
+    $clone = data.$clone,    
     offset = {
-      left : data.offsetX + e.clientX,
-      top : data.offsetY + e.clientY
+      left : data.$scrollEl.scrollLeft() + data.offsetX + e.clientX,//e.clientX,
+      top : data.$scrollEl.scrollTop() + data.offsetY + e.clientY//e.clientY
     },        
     rects = e.data.rects,
     // TODO - currently only support up and down
@@ -280,13 +298,13 @@
     if( !data.rects ) {
       return;
     }
-    var x = offset.left + data.centerOffsetX,
-        y = offset.top + data.centerOffsetY,
+    var x =  offset.left + data.centerOffsetX,
+        y =  offset.top + data.centerOffsetY,
         rects = data.rects;
     
-    var targetRect = _.find(data.rects, function(rect) {
+    var targetRect = _.find(rects, function(rect) {
       return !isOutOfBound(rect.rect, x, y);
-    });
+    });        
     
     if(!targetRect) {
       var eData = eventData(),
@@ -311,16 +329,18 @@
         data.currentIndex = index;
         
         eventData({
-          fromIndex : data.originalIndex,
-          isSelfSort : targetRect.isSelfSort,
-          toIndex : index,
-          direction : direction,
-          // current elements dimension
-          dimension : {
-            top : dimensions.top[index],
-            bottom : dimensions.bottom[index]
+          index: {
+            from: data.originalIndex,
+            to: index
           },
-          $target : targetRect.$el
+          isSelfSort: targetRect.isSelfSort,
+          direction: direction,
+          // current elements dimension
+          dimension: {
+            top: dimensions.top[index],
+            bottom: dimensions.bottom[index]
+          },
+          $target: targetRect.$el
         });
         //data.$sortive.trigger('indexchange', {
         targetRect.$el.trigger('indexchange', eventData());

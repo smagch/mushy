@@ -74,7 +74,7 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
       var self = this;          
       $('#search-content')
       .sortive({
-        itemTag : 'li',
+        item : 'li',
         selfSort : false
       })
       .on('itemsend', _.bind( this.sendItem, this) );
@@ -84,13 +84,13 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
     },
     sendItem: function( e, data ) {            
       var currentCollection = this.rightColumn.currentCollection();
-      console.log('data.fromIndex : ' + data.fromIndex);
+      
               
         //var model = currentCollection.getByCid(id);                
-      var model = currentCollection.at(data.fromIndex);
+      var model = currentCollection.at(data.index.from);
       //var json = model.toJSON();
       //console.dir( json );
-      
+      // TODO index      
       this.leftColumn.addModel(model.toJSON() );
       currentCollection.remove( model);                                          
     }

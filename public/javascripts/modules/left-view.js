@@ -1,8 +1,6 @@
 define(['modules/util'], function(U) {  
 
   // alias
-
-
   var Items = { },
     M = { },
     C = { };
@@ -23,54 +21,8 @@ define(['modules/util'], function(U) {
           obj.cid = model.cid;
           return obj;
         });
-      },
-    // , initialize : function(options) {
-    //       this.on('add', this.addHandler, this );
-    //   }
-    // , addHandler : function(models) {
-    //       if( _.isArray(model) ) {
-    //           
-    //       } else {
-    //           
-    //       }
-    //   }
-    // , checkIndex : function(model) {
-    //       
-    //   }     
-  });
-  
-  // var ItemBaseView = Backbone.View.extend({
-  //   tagName: 'li',
-  //   initialize : function( options ) {
-  //     this.template = U.templates[this.template];
-  //   },
-  //   render: function() {
-  //     this.$el.html(
-  //       this.template({
-  //         model : this.model.toJSON()
-  //       })
-  //     ).attr('data-model-cid', this.model.id);
-  //     return this;
-  //   }
-  // });
-  //   
-  // Items['twitter'] = ItemBaseView.extend({
-  //   template: 'twitter-quote-template',
-  //   className: 'article-item clearfix twitter-quote'
-  // });
-  // 
-  // Items['facebook'] = ItemBaseView.extend({
-  //   //template: TODO
-  //   templat: 'twitter-quote-template',
-  //   className: 'article-item clearfix twitter-quote'
-  // });
-  // 
-  // Items['text'] = ItemBaseView.extend({
-  //   template: 'text-template',
-  //   className: 'clearfix text article-item'
-  // });
-  
-  
+      }
+  });    
                   
   var ArticleView = Backbone.View.extend({
     el: '#article',
@@ -81,29 +33,28 @@ define(['modules/util'], function(U) {
       this.$editor
         .autosize()
         .hide();
-      this.$articleItems = this.$('#article-list');
+      
       this.collection = new C['MashUpCollection']();
       this.collection
         .on('add', this.addItem, this )
         .on('reset', this.render, this )
         .on('change', this.change, this );
-      
-      this.$el
+        
+      this.$articleItems = this.$('#article-list');
+      this.$articleItems
         .sortive({
-          itemTag: 'li'                  
+          item: 'li',
+          scrollElement: '#article'
         })
-        .on('indexchange', _.bind(this.setMarker, this))
+        .on('indexchange', _.bind(this.indexChangeHandler, this))
         .on('itemmove', _.bind(this.moveItem, this))
-        //.on('sortfocusin', _.bind(this.focusIn, this))
-        //.on('sortfocusout', _.bind(this.focusOut, this));
+        //.on('sortfocusin', _.bind(this.sortFocusIn, this))
+        .on('sortfocusout', _.bind(this.sortFocusOut, this));
         
       this.loadCache();
     },
     events : {
-      //'click .add-text': 'moveInput',
-      //'focusin #article-editor': 'focusIn',
       'focusout #article-editor': 'leaveTextEdit',
-      //'mouseenter .add-text': 'showAddText',
       'click #article-editor': 'clickEditor',
       'click .delete-button': 'deleteClicked',
       'click .add-button': 'showMenu',
@@ -134,6 +85,7 @@ define(['modules/util'], function(U) {
       }
       this.$editor
         .removeData('target')
+        .insertBefore(this.$articleItems)
         .val('')
         .hide();
     },
@@ -172,48 +124,7 @@ define(['modules/util'], function(U) {
         .insertAfter($target[0])
         .show()
         .focus();
-      e.stopPropagation();
-      // $(document).one('click', function() {
-      //   $editor.hide();
-      // });
-      // $editor.one('focusout', _.bind(function(e) {
-      //   var val = this.$editor.val();
-      //   if(val.replace(/\s+/g).length) {
-      //     // create new test model
-      //     var textModel = new M['MashUpModel']({
-      //       type: 'text',
-      //       text: val
-      //     });
-      //     console.dir( textModel );
-      //     this.collection.add(textModel, {
-      //       at: index
-      //       //silent: true
-      //     });
-      //     // var obj = textModel.toJSON();
-      //     //  obj.cid = textModel.cid;
-      //     //  obj = [obj];
-      //     //  $target.after(this.template({models: obj}));
-      //   }
-      //   this.$editor.hide().val('');
-      //   this.$editor.hide();
-      //   this.updateCache();
-      // }, this));
-      
-      // this.$editor  
-      // stub show input
-      // this.collection.add()
-      
-    },
-    showAddText: function(e) {
-      // var $target = $(e.target);
-      //             var timeoutId = setTimeout(function() {
-      //               $target.show();
-      //             }, 1000);
-      //             
-      //             $(e.target).one('mouseleave', function(e) {
-      //               clearTimeout(timeoutId);
-      //               $target.hide();
-      //             });
+      e.stopPropagation();      
     },
     deleteClicked: function(e) {
       console.log('remove');
@@ -254,20 +165,26 @@ define(['modules/util'], function(U) {
         this.collection.reset(obj);
       }
     },
-    moveInput: function(e) {
-      var offset = $(e.target).offset();
-      //this.$editor.offset(offset);                
-    },
-    setMarker: function(e, data) {
-      console.log('setMarker');
+    indexChangeHandler: function(e, data) {
+      console.log('indexChange');
+      var index = data.index;
+      if(data.isSelfSort && data.index.from === data.index.to) {
+        // original position
+        console.log('original position');
+      } else {
+        console.log('data.index.to : ' + data.index.to);
+        console.log('data.index.from : ' + data.index.from);
+        
+        
+      }
     },
     moveItem: function(e, data) {
       console.log('moveItem');
     },
-    focusIn: function(e) {
+    sortFocusIn: function(e) {
       console.log('focus in');      
     },
-    focusOut: function(e) {
+    sortFocusOut: function(e) {
       console.log('focus out');
       // var index;
       //                 var model = new M['MashUpModel']({
@@ -276,11 +193,6 @@ define(['modules/util'], function(U) {
       //                 
       //                 this.collection.add(model);
     },
-    getJson: function(model) {
-      var ret = model.toJSON();
-      ret.cid = model.cid;
-      return ret;
-    },    
     addItem: function(model) {
       console.log('add item article');
       var index = this.collection.indexOf(model),
@@ -300,8 +212,7 @@ define(['modules/util'], function(U) {
     renderByModels: function(models) {
       console.log('render article');      
       //_.isArray(obj) || (obj = [obj]);            
-      var element = this.template({models: models});
-      console.log('element : ' + element);
+      var element = this.template({models: models});      
       this.$articleItems.empty();
       this.$articleItems.append(element);
       this.updateCache();
