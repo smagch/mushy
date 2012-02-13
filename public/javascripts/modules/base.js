@@ -61,8 +61,8 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
     events : {
     
     },
-    addModel : function( model ) {
-      this.articleView.collection.add( model );
+    addModel : function( model, index ) {
+      this.articleView.collection.add( model, { at: index } );
     }                
   });
     
@@ -91,7 +91,7 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
       //var json = model.toJSON();
       //console.dir( json );
       // TODO index      
-      this.leftColumn.addModel(model.toJSON() );
+      this.leftColumn.addModel(model.toJSON(), data.index.to );
       currentCollection.remove( model);                                          
     }
   });

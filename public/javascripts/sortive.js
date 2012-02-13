@@ -340,6 +340,7 @@
             top: dimensions.top[index],
             bottom: dimensions.bottom[index]
           },
+          $original: data.$original,
           $target: targetRect.$el
         });
         //data.$sortive.trigger('indexchange', {

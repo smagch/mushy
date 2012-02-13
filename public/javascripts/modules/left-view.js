@@ -38,6 +38,7 @@ define(['modules/util'], function(U) {
       this.collection
         .on('add', this.addItem, this )
         .on('reset', this.render, this )
+        .on('remove', this.removeItem, this)
         .on('change', this.change, this );
         
       this.$articleItems = this.$('#article-list');
@@ -137,7 +138,12 @@ define(['modules/util'], function(U) {
       });
       $target.remove();
       this.updateCache();
-    },    
+    },
+    removeItem: function(model) {
+      console.log('remove');
+      
+      //this.updateCache();
+    },   
     change: function(model, options) {
       var cid = model.cid;
         element = this.template({models: U.toJSONArray(model)}),
@@ -173,13 +179,25 @@ define(['modules/util'], function(U) {
         console.log('original position');
       } else {
         console.log('data.index.to : ' + data.index.to);
-        console.log('data.index.from : ' + data.index.from);
-        
-        
+        console.log('data.index.from : ' + data.index.from);                
       }
     },
     moveItem: function(e, data) {
       console.log('moveItem');
+      var index = data.index.to,
+        $target = data.$original,
+        cid = $target.attr('data-model-cid'),
+        model = this.collection.getByCid(cid);
+        
+      console.log('cid : ' + cid);
+      console.dir( model );
+
+      this.collection
+        .remove(model, { silent: true })
+        .add(model, { at: index });
+        
+      $target.remove();
+      this.updateCache();
     },
     sortFocusIn: function(e) {
       console.log('focus in');      
