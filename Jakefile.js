@@ -50,7 +50,7 @@ var config = {
 }
 
 function hint( src, path ) {
-  console.log('about to jshint : ' + path);
+  console.log('about to jshint : ' + path.underline);
   if (jshint( src, config.jshint)) {
     console.log('ok'.green.bold);
   } else {
@@ -81,16 +81,15 @@ function readFile( filepath ) {
 
 desc('Start Test concat and hint');
 task('default', ['hint'], function() {
-  console.log('--------------' + 'complete'.green.bold + '--------------' );  
+  console.log('--------------' + 'complete'.green.bold + '--------------' );
 });
-
 
 desc('hint');
 task('hint', function() {
   console.log('about to hint');
   var list = new jake.FileList();
   list.include(config.src);
-  console.log('about to jshint files : \n' + list.toArray().join('\n').toString().underline);  
+  console.log('about to jshint files : \n' + list.toArray().join('\n').toString().underline);
   list.toArray().forEach(function(filePath) {
     var body = readFile(filePath);
     hint(body, filePath);
