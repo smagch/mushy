@@ -5,8 +5,21 @@ define(function(){
   U.precompileTemplates = function(){
     var templates = { };
     $("script[type='text/template']").each(function() {
-      templates[this.id] = _.template($(this).html());
+      templates[this.id] = Handlebars.compile($(this).html());
     });
+    Handlebars.registerHelper('renderArticle', function(context) {
+      var key = context.type + '-article-template',
+        template = templates[key];
+      
+      if(template) {
+        return template(context);
+      }
+      return template['unknown-template'](context);
+    });
+    Handlebars.registerHelper('markdown', function(text) {
+      return marked(_.escape(text));
+    });
+    
     U.templates = templates;
   };
   
