@@ -53,6 +53,13 @@ app.get('/', function (req, res) {
    });
 });
 
+app.get('/test', function( req, res) {
+    console.log('test');
+    res.render('test', {
+        title : 'test'
+      , view : 'home'
+    });
+});
 app.get('/popcorn', function (req, res) {
     res.render('popcorn', {
         title : 'popcorn test'

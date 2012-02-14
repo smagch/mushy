@@ -8,23 +8,124 @@ div
 html, body
   margin 0
   padding 0
+  user-select(none)
 
 body 
   background #6B6B6B
 
+input, textarea
+  background-color transparent
+  border 1px solid #292929
+  outline none
+  padding 6px
+  display block
+  width 94%
+  resize none
+  box-shadow(rgba(0, 0, 0, 0.2) 0 1px 2px 0 inset)
+
 #wrapper
   width 100%
+  height 100%
+
+header-height = 0px
   
-header
-  h1
-    font-size 3em
-  background #999  
+
   
-  
-#content
-  width 600px
-  margin 0 auto
-  
+right-w = 520px  
+#content  
+  #left-column
+    position absolute
+    top 0
+    left 0
+    bottom 0
+    right right-w    
+  #right-column
+    position absolute
+    width right-w
+    height 100%
+    top header-height
+    right 0
+    
+    
+#article    
+  margin 0
+  padding 0
+  background #D4D4D4
+  position absolute
+  top 0
+  left 0
+  bottom 0  
+  width 100%
+  overflow auto    
+  input#header-input
+    font-size 2em
+  textarea#description-input
+    font-size 1.3em
+  #article-editor
+    resize none
+    width 100%
+    background none
+  #article-list
+    margin 0
+    padding 0
+    position relative    
+    
+    
+
+li.article-item
+  position relative
+  list-style none
+  margin 10px
+  padding 0
+  min-height 20px
+  &:hover
+    background #C6C6C6
+    .delete-button
+    .add-button
+      display block
+      
+  //width 100%
+  .add-button
+    display none
+    position absolute
+    height 30px
+    width 30px
+    bottom @height * -0.2
+    left 10px
+    font-size 20px
+    background #303030
+    cursor pointer
+  .delete-button
+    position absolute
+    right 2px
+    top 2px    
+    display none
+    color #121212
+    font-weight bold
+    cursor pointer
+    &:hover
+      color #898899
+  .add-text
+    position absolute
+    bottom -20px
+    width 100%
+    line-height 20px            
+    opacity 0
+    background #491B99
+    &:hover
+      opacity 1
+  .twitter-quote-content
+    width 400px
+    margin 0 auto
+    .tweet-user
+      font-weight bold
+      font-size 1.1em
+      margin 4px 0 2px 4px
+    .tweet-text
+      margin 0 8px 8px 8px
+    a
+      float right    
+   
 #search-form
   $active-background = #AAA  
   border-radius(9px)
@@ -71,37 +172,40 @@ header
       &.active      
         display block           
   
-#search-input
-  width 90%
-  font-size 2em  
-  padding 6px
+#search-input  
+  font-size 2em
+  
+#related
+  display none
+  position absolute
+  &.active
+    display block
 
 #search-content      
-  border-radius(9px)
+  border-top-radius(9px)
   border 1px solid #999
-  min-height 300px  
+  overflow-y auto
+  position absolute
+  top 170px
+  bottom 0px  
+  width 100%
   ul
-    margin 20px
+    //margin 20px
+    li
+      margin 10px
+      &.selected
+        background #B2B2B2
     padding 0
     display none
+    position relative
     &.active
       display block
-    li.tweet
+    &.active.loding:after
       display block
-      list-style none
-      border 1px solid #D2D2D2
-      border-radius(4px)
-      margin 12px 0
-      padding 0      
-      a
-        float left
-        margin 10px
-      .tweet-user
-        font-weight bold
-        font-size 1.1em
-        margin 4px 0 2px 4px
-      .tweet-text
-        margin 0 8px 8px 8px
+      content ''
+      width 100%
+      height 100px
+      background transparent url('../images/bigrotation2.gif') no-repeat center
     li.image
       display inline-block
       vertical-align middle
@@ -113,7 +217,29 @@ header
         display block
 
 
+li.tweet
+  display block
+  list-style none
+  border 1px solid #D2D2D2
+  border-radius(4px)
+  margin 12px 0
+  padding 0      
+  a
+    float left
+    margin 10px
+  .tweet-user
+    font-weight bold
+    font-size 1.1em
+    margin 4px 0 2px 4px
+  .tweet-text
+    margin 0 8px 8px 8px
 
+// article item components
+
+.text
+  background #D2D2D2
+  
+  
   
 .button
   border-radius(9px)

@@ -1,7 +1,8 @@
-/* https://gist.github.com/895668 */
 vendor(prop, args)
   -webkit-{prop} args
+  -khtml-{prop} args
   -moz-{prop} args
+  -ms-{prop} args
   -o-{prop} args
   {prop} args
 
@@ -43,6 +44,9 @@ box(orient, pack, align)
   vendor('box-align', align)
   vendor('box-lines', multiple)
 
+user-select()
+  vendor('user-select', arguments)
+  
 box_flex()
   vendor('box-flex', arguments)
 

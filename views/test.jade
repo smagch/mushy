@@ -1,0 +1,62 @@
+script(src='/javascripts/libs/jquery-1.7.1.js')
+script(src='/javascripts/libs/underscore.js')
+script(src='/javascripts/libs/jsonselect.js')
+input#search(style='width: 100%', placeholder='url to request')
+input#selector(style='width: 300px', placeholder='input selector here')
+script
+  var obj = _.map([1,2,3,4,5], function(val, index) {
+    if(val === 3) {
+      return false;
+    }
+    return '' + val;
+  });
+  console.dir(obj);
+  (function(){      
+    var currentModel;
+    $.when($.ajax('/json/facebook.json') ).done(function(ret){
+      console.log('facebook');
+      console.dir(ret);
+    });
+    $.when($.ajax('/json/twitter.json') ).done(function(ret) {
+      console.log('twitter');
+      console.dir( ret );
+    });
+    $.when($.ajax('/json/image.json') ).done(function(ret) {
+      console.log('image');
+      console.dir( ret );
+    });
+    $.when($.ajax('/json/user_timeline.json') ).done(function(ret) {
+      console.log('user timeline');
+      console.dir( ret );
+      currentModel = ret;
+    });
+    $('#search').on('keyup', function(e) {
+      if( e.keyCode === 13 ) {
+        var val = $(this).val() + '&callback=?';
+        if (val !== '') {
+          $.getJSON(val).done(function(ret, status) {
+            currentModel = ret;
+            console.log( val );
+            console.dir( ret );
+            console.dir( status );
+          });
+        }        
+      }
+    });
+  
+    $('#selector').on('keyup', function(e) {
+      var val;
+      if( e.keyCode !== 13 ) {
+        return;
+      }
+      var val = $(this).val();
+      if(val === '' || !currentModel) {
+        return;
+      }
+      console.log('selector : ' + val);    
+      var obj = JSONSelect.match(val, currentModel);      
+      
+      console.log('obj');
+      console.dir( arr );                
+    });
+  })();
