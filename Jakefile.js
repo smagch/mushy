@@ -19,6 +19,7 @@ var config = {
   //'dest': 'public/javascripts/MR.js',
   //'dest-min': 'public/javascripts/MR.min.js',  
   jshint: {
+    predef: [ "_", "$", "Backbone", "jQuery", 'marked', 'require', 'define'],
     // Environments
     browser: true,
     forin: false,
@@ -33,12 +34,8 @@ var config = {
     newcap: true,
     curly: true,
     latedef: true,
-    nonew: true,
-    // Legacy    
-    //
-    
-    predef: [ "_", "$", "Backbone", "jQuery", 'marked', 'require', 'define', 'console']
-
+    nonew: true
+    // Legacy
   },
   // Uglify Optional Settings
   uglify: {
@@ -70,7 +67,7 @@ function hint( src, path ) {
 }
 
 function readFile( filepath ) {
-  var src;    
+  var src;
   try {
     src = fs.readFileSync( filepath, "UTF-8" );
     return src;

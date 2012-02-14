@@ -22,7 +22,6 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
           content.changeView( key.join('-') );
         })
         .on('click', 'span.button', function(e) {
-          console.log('span clicked');
           var category =
             $( e.target )
               .addClass('selected')
@@ -30,7 +29,6 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
                 .removeClass('selected')
                 .end()
               .text().replace(/\s+/g, '');
-          console.log('category : ' + category);
           content.changeCategory( category );
         });
 
@@ -93,9 +91,7 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
   
   return {
     start: function() {
-      console.log('start');
       U.precompileTemplates();
-      console.log('tempcomp');
       return new AppView();
     }
   };

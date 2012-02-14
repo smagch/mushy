@@ -127,7 +127,6 @@ define(['modules/util'], function(U) {
       e.stopPropagation();
     },
     deleteClicked: function(e) {
-      console.log('remove');
       var $target = $(e.target).parents('li'),
         cid = $target.attr('data-model-cid');
       
@@ -139,7 +138,6 @@ define(['modules/util'], function(U) {
       this.updateCache();
     },
     removeItem: function(model) {
-      console.log('remove');
     },
     change: function(model, options) {
       var cid = model.cid,
@@ -153,7 +151,6 @@ define(['modules/util'], function(U) {
     },
     updateCache: function() {
       var cache = this.collection.toJSON();
-      console.log('this.collection.length : ' + this.collection.length);
       
       // TODO JSON poryfill
       localStorage.removeItem('mr');
@@ -163,31 +160,24 @@ define(['modules/util'], function(U) {
       var cache = localStorage.getItem('mr');
       if(cache) {
         var obj = JSON.parse(cache);
-        console.log('cache');
-        console.dir( obj );
         this.collection.reset(obj);
       }
     },
     indexChangeHandler: function(e, data) {
-      console.log('indexChange');
       var index = data.index;
       if(data.isSelfSort && data.index.from === data.index.to) {
         // original position
-        console.log('original position');
+        // console.log('original position');
       } else {
-        console.log('data.index.to : ' + data.index.to);
-        console.log('data.index.from : ' + data.index.from);
+        //console.log('data.index.to : ' + data.index.to);
+        //console.log('data.index.from : ' + data.index.from);
       }
     },
     moveItem: function(e, data) {
-      console.log('moveItem');
       var index = data.index.to,
         $target = data.$original,
         cid = $target.attr('data-model-cid'),
         model = this.collection.getByCid(cid);
-
-      console.log('cid : ' + cid);
-      console.dir( model );
 
       this.collection
         .remove(model, { silent: true })
@@ -197,10 +187,10 @@ define(['modules/util'], function(U) {
       this.updateCache();
     },
     sortFocusIn: function(e) {
-      console.log('focus in');
+      //console.log('focus in');
     },
     sortFocusOut: function(e) {
-      console.log('focus out');
+      //console.log('focus out');
       // var index;
       //                 var model = new M['MashUpModel']({
       //                   text : 'hoge'
@@ -208,7 +198,7 @@ define(['modules/util'], function(U) {
       //                 this.collection.add(model);
     },
     addItem: function(model) {
-      console.log('add item article');
+      
       var index = this.collection.indexOf(model),
         beforeCid = this.collection.at(index-1).cid,
         $beforeEl = this.$articleItems.find('[data-model-cid='+beforeCid+']'),
@@ -223,7 +213,6 @@ define(['modules/util'], function(U) {
       this.renderByModels(obj);
     },
     renderByModels: function(models) {
-      console.log('render article');
       //_.isArray(obj) || (obj = [obj]);
       var element = this.template({models: models});
       this.$articleItems.empty();

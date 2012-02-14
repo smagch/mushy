@@ -75,7 +75,6 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       return this.$el.children(':nth-child('+ (index+1) + ')');
     },
     removeItem : function( model, collection ) {
-      console.log('remove');
       //var id = model.cid;
       //this.$('li[id='+ id + ']').remove();
       //var index = collection.indexOf(model);
@@ -160,7 +159,6 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       }
     },
     hide: function() {
-      console.log('hide');
       this.$el.removeClass('active');
     },
     resetView: function(context, options) {

@@ -128,11 +128,11 @@ define(function() {
   C['twitter-user'] = C.QueryCollection.extend({
     model : M.TwitterModel,
     initialize : function() {
-      this.on('reset', function() {
-        console.log('user reset');
-      }).on('add', function() {
-        console.log('user add');
-      });
+      // this.on('reset', function() {
+      //
+      // }).on('add', function() {
+      //
+      // });
     },
     defaultUrl : 'https://api.twitter.com/1/statuses/user_timeline.json',
     params : {
@@ -170,7 +170,7 @@ define(function() {
     fetch : function( options ) {
       // 4 sec for timeout
       this.timeoutId = setTimeout( _.bind( function() {
-        console.log('timeout');
+
         this.timeoutId = undefined;
         this.reset([]);
       }, this ) , 4000);
@@ -218,7 +218,7 @@ define(function() {
       return Backbone.Collection.prototype.add.call(this, model, options);
     },
     parse: function(response, xhr) {
-      console.dir( response );
+
       var data = response[0];
       if(data) {
         var ret =  _.map(data.results, function(model) {
