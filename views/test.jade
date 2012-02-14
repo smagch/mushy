@@ -13,23 +13,41 @@ script
   console.dir(obj);
   (function(){      
     var currentModel;
+    // $.when($.ajax('/json/youtube.json')).done(function(ret) {
+    //   console.log('youtube');
+    //   console.dir( ret );
+    //   currentModel = ret;
+    // });
+    // 
+    // return;
+    
     $.when($.ajax('/json/facebook.json') ).done(function(ret){
       console.log('facebook');
       console.dir(ret);
     });
+    
     $.when($.ajax('/json/twitter.json') ).done(function(ret) {
       console.log('twitter');
       console.dir( ret );
     });
+    
     $.when($.ajax('/json/image.json') ).done(function(ret) {
       console.log('image');
       console.dir( ret );
     });
+    
     $.when($.ajax('/json/user_timeline.json') ).done(function(ret) {
       console.log('user timeline');
       console.dir( ret );
       currentModel = ret;
     });
+    //
+    $.when($.getJSON('http://gdata.youtube.com/feeds/api/videos?q=tokido&alt=json&max-results=30&format=5&callback=?') ).done(function(ret) {
+      console.log('youtube');
+      console.dir( ret );
+      currentModel = ret;
+    });
+        
     $('#search').on('keyup', function(e) {
       if( e.keyCode === 13 ) {
         var val = $(this).val() + '&callback=?';

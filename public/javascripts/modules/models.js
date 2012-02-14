@@ -6,25 +6,37 @@ define(function() {
   // alias
   M = Models.Models,
   C = Models.Collections;
+    
+  var BaseModel = Backbone.Model.extend({
+    // mongo db key
+    idAttribute: '_id'
+  });
   
-  M.TwitterModel = Backbone.Model.extend({
+  M.TwitterModel = BaseModel.extend({
     type: 'twitter',
     defaults: {
       type: 'twitter'
     }
   });
   
-  M.TwitterImageModel = Backbone.Model.extend({
-    type : 'image',
+  M.TwitterImageModel = BaseModel.extend({
+    type: 'image',
     defaults: {
       type: 'image'
     }
   });
   
-  M.FacebookModel = Backbone.Model.extend({
-    type : 'facebook',
+  M.FacebookModel = BaseModel.extend({
+    type: 'facebook',
     defaults: {
       type: 'facebook'
+    }
+  });
+  
+  M.YoutubeModel = BaseModel.extend({
+    type: 'youtube',
+    defaults: {
+      type: 'youtube'
     }
   });
   
@@ -34,7 +46,11 @@ define(function() {
       if( this.isPaging ) {
         return this.nextUrl + '&callback=?';
       }
-      return this.defaultUrl + '?' + $.param(this.params) + '&callback=?';
+      //return this.defaultUrl + '?' + $.param(this.params) + '&callback=?';
+      return this.formatUrl(this.defaultUrl, this.params) + '&callback=?';
+    },
+    formatUrl: function(url, param) {
+      return url + '?' + $.param(param);
     },
     params : null,
     queryKey : 'q',
@@ -278,6 +294,40 @@ define(function() {
       });
     }
   });
+  
+  C['youtube'] = C.QueryCollection.extend({
+    model: M.YoutubeModel,
+    defaultUrl: 'https://gdata.youtube.com/feeds/api/videos',
+    params: {
+      q: '',
+      v: 2,
+      alt: 'jsonc',
+      'max-results': 10
+    },
+    _parse: function(response) {
+      var data = response.data;
+      if(data.totalItems > data.startIndex) {
+        this.nextUrl = this.formatUrl(this.defaultUrl,
+          _.extend({}, this.params, {
+            'start-index': data.startIndex + data.itemsPerPage
+          })
+        );
+      } else {
+        this.nextUrl = undefined;
+      }
+
+      return _.map(data.items, function(model) {
+        return {
+          title: model.title,
+          description: model.description,
+          id: model.id,
+          thumbnail_s: model.thumbnail.sqDefault,
+          thumbnail_b: model.thumbnail.hqDefault,
+          player: model.player['default']
+        };
+      });
+    }
+  });
   // status video sort should be done by view.
   C['facebook'] = C.QueryCollection.extend({
     model: M.FacebookModel,
@@ -288,7 +338,7 @@ define(function() {
       q : '',
       offset : 1
     },
-    _parse: function( response ) {
+    _parse: function(response) {
       if( response.paging && response.paging.next ) {
         this.nextUrl = response.paging.next;
       }

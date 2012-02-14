@@ -3,28 +3,6 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
   
   var Lists = {},
     Collections = Models.Collections;
-    //Items = {},
-  //ItemBaseView = U.ItemBaseView,
-  
-  
-  // RV.Items['twitter-search'] = ItemBaseView.extend({
-  //   template : 'twitter-template',
-  //   className : 'clearfix tweet'
-  // });
-  //
-  // RV.Items['twitter-user'] = RV.Items['twitter-id'] = RV.Items['twitter-search'];
-  //
-  // RV.Items['twitter-image'] = ItemBaseView.extend({
-  //   template : 'image-template',
-  //   className : 'image'
-  // });
-  //
-  // RV.Items['facebook'] = ItemBaseView.extend({
-  //   template : 'facebook-template',
-  //   className : 'clearfix tweet'
-  // });
-  
-
     
   var ListBaseView = Backbone.View.extend({
     prefix : 'search-content',
@@ -100,12 +78,6 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     }
   });
   
-  // _.each( RV.Items, function( item, key ) {
-  //   RV.Lists[key] = RV.ListBaseView.extend({
-  //     key : key
-  //   });
-  // });
-  
   Lists['twitter-search'] = ListBaseView.extend({
     template: 'twitter-list-template',
     key: 'twitter-search',
@@ -135,6 +107,13 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     key: 'facebook',
     className: 'clearfix'
   });
+  
+  Lists['youtube'] = ListBaseView.extend({
+    template: 'youtube-list-template',
+    key: 'youtube-search',
+    className: 'clearfix'
+  });
+  
   // related view
   var RelatedView = Backbone.View.extend({
     template: 'twitter-list-template',
