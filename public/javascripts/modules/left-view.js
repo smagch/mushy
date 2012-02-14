@@ -1,13 +1,11 @@
-define(['modules/util'], function(U) {  
+define(['modules/util'], function(U) {
 
   // alias
   var Items = { },
     M = { },
     C = { };
-//  ItemBaseView = U.ItemBaseView;      
       
-  M['MashUpModel'] = Backbone.Model.extend({                  
-    //types : 'twitter facebook text'.split(/\s/g)
+  M['MashUpModel'] = Backbone.Model.extend({
     toJSONWithCid: function() {
       return ( this.toJSON().cid = this.cid );
     }
@@ -22,8 +20,8 @@ define(['modules/util'], function(U) {
           return obj;
         });
       }
-  });    
-                  
+  });
+
   var ArticleView = Backbone.View.extend({
     el: '#article',
     template: 'quote-list-template',
@@ -40,7 +38,7 @@ define(['modules/util'], function(U) {
         .on('reset', this.render, this )
         .on('remove', this.removeItem, this)
         .on('change', this.change, this );
-        
+      
       this.$articleItems = this.$('#article-list');
       this.$articleItems
         .sortive({
@@ -51,7 +49,8 @@ define(['modules/util'], function(U) {
         .on('itemmove', _.bind(this.moveItem, this))
         //.on('sortfocusin', _.bind(this.sortFocusIn, this))
         .on('sortfocusout', _.bind(this.sortFocusOut, this));
-        
+      
+      this.$('#description-input').autosize();
       this.loadCache();
     },
     events : {
@@ -91,12 +90,12 @@ define(['modules/util'], function(U) {
         .hide();
     },
     editText: function(e) {
-      var $target = $(e.target).parents('li'),        
+      var $target = $(e.target).parents('li'),
         cid = $target.attr('data-model-cid'),
         model = this.collection.getByCid(cid);
       
       $target.hide();
-      this.$editor              
+      this.$editor
         .data('target', {
           model: model,
           $target: $target
@@ -106,9 +105,9 @@ define(['modules/util'], function(U) {
         .insertBefore($target[0])
         .trigger('autosize')
         .focus();
-              
-      e.stopPropagation();            
-    },   
+      
+      e.stopPropagation();
+    },
     clickEditor: function(e) {
       e.stopPropagation();
     },
@@ -117,7 +116,7 @@ define(['modules/util'], function(U) {
       var $target = $(e.target).parents('li'),
         cid = $target.attr('data-model-cid'),
         model = this.collection.getByCid(cid),
-        index = this.collection.indexOf(model) + 1;            
+        index = this.collection.indexOf(model) + 1;
       this.$editor
         .data('target', {
           index: index
@@ -125,7 +124,7 @@ define(['modules/util'], function(U) {
         .insertAfter($target[0])
         .show()
         .focus();
-      e.stopPropagation();      
+      e.stopPropagation();
     },
     deleteClicked: function(e) {
       console.log('remove');
@@ -141,14 +140,12 @@ define(['modules/util'], function(U) {
     },
     removeItem: function(model) {
       console.log('remove');
-      
-      //this.updateCache();
-    },   
+    },
     change: function(model, options) {
-      var cid = model.cid;
+      var cid = model.cid,
         element = this.template({models: U.toJSONArray(model)}),
         $target = this.$articleItems.find('[data-model-cid='+cid+']');
-            
+      
       $target
         .after(element)
         .remove();
@@ -160,7 +157,7 @@ define(['modules/util'], function(U) {
       
       // TODO JSON poryfill
       localStorage.removeItem('mr');
-      localStorage.setItem('mr', JSON.stringify(cache));      
+      localStorage.setItem('mr', JSON.stringify(cache));
     },
     loadCache: function() {
       var cache = localStorage.getItem('mr');
@@ -179,7 +176,7 @@ define(['modules/util'], function(U) {
         console.log('original position');
       } else {
         console.log('data.index.to : ' + data.index.to);
-        console.log('data.index.from : ' + data.index.from);                
+        console.log('data.index.from : ' + data.index.from);
       }
     },
     moveItem: function(e, data) {
@@ -188,19 +185,19 @@ define(['modules/util'], function(U) {
         $target = data.$original,
         cid = $target.attr('data-model-cid'),
         model = this.collection.getByCid(cid);
-        
+
       console.log('cid : ' + cid);
       console.dir( model );
 
       this.collection
         .remove(model, { silent: true })
         .add(model, { at: index });
-        
+      
       $target.remove();
       this.updateCache();
     },
     sortFocusIn: function(e) {
-      console.log('focus in');      
+      console.log('focus in');
     },
     sortFocusOut: function(e) {
       console.log('focus out');
@@ -208,7 +205,6 @@ define(['modules/util'], function(U) {
       //                 var model = new M['MashUpModel']({
       //                   text : 'hoge'
       //                 });
-      //                 
       //                 this.collection.add(model);
     },
     addItem: function(model) {
@@ -219,18 +215,17 @@ define(['modules/util'], function(U) {
         element = this.template({models: U.toJSONArray(model)});
       if(!$beforeEl.length) {
         throw new Error('no such cid element: ' + beforeCid);
-        return;
       }
-      $beforeEl.after(element); 
+      $beforeEl.after(element);
     },
     render: function() {
       var obj = this.collection.toJSONWithCid();
       this.renderByModels(obj);
     },
     renderByModels: function(models) {
-      console.log('render article');      
-      //_.isArray(obj) || (obj = [obj]);            
-      var element = this.template({models: models});      
+      console.log('render article');
+      //_.isArray(obj) || (obj = [obj]);
+      var element = this.template({models: models});
       this.$articleItems.empty();
       this.$articleItems.append(element);
       this.updateCache();

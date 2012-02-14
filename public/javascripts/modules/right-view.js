@@ -3,7 +3,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
   
   var Lists = {},
     Collections = Models.Collections;
-    //Items = {},    
+    //Items = {},
   //ItemBaseView = U.ItemBaseView,
   
   
@@ -11,14 +11,14 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
   //   template : 'twitter-template',
   //   className : 'clearfix tweet'
   // });
-  // 
+  //
   // RV.Items['twitter-user'] = RV.Items['twitter-id'] = RV.Items['twitter-search'];
-  // 
+  //
   // RV.Items['twitter-image'] = ItemBaseView.extend({
   //   template : 'image-template',
   //   className : 'image'
   // });
-  // 
+  //
   // RV.Items['facebook'] = ItemBaseView.extend({
   //   template : 'facebook-template',
   //   className : 'clearfix tweet'
@@ -35,7 +35,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       this.setElement( '#' + this.prefix + '-' + this.key );
       if( !this.key || !this.$el) {
           throw new Error('key :' + this.key + ' is invalid');
-      }      
+      }
       this.collection
         .on('reset', this.render, this )
         .on('add', this.addItem, this )
@@ -57,7 +57,9 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     // },
     addItem : function( data ) {
       var models = data.toJSON();
-      _.isArray(models) || (models = [models]);      
+      if(!_.isArray(models)) {
+        models = [models];
+      }
       this.$el.append(
         this.template({
           models: models
@@ -79,31 +81,30 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       //var index = collection.indexOf(model);
       //console.log('index : ' + index);
       // TODO how to smartly remove item
-      this.render();                
+      this.render();
       //this.getChildAt(index).remove();
-          
-    },                  
-    render : function () {      
-      this.$el.empty();            
-      if( this.collection.length ) {                    
+    },
+    render : function () {
+      this.$el.empty();
+      if( this.collection.length ) {
         //this.collection.each( this.createItem, this );
         this.$el.html(
           this.template({
             models: this.collection.toJSON()
           })
         );
-      } else {                    
+      } else {
         // TODO make error msg nicely
         this.$el.append('<p class=nohit>no hit for keyword : ' + this.collection._query + '</p>');
       }
-      return this;                    
-    }  
+      return this;
+    }
   });
   
-  // _.each( RV.Items, function( item, key ) {    
+  // _.each( RV.Items, function( item, key ) {
   //   RV.Lists[key] = RV.ListBaseView.extend({
   //     key : key
-  //   });    
+  //   });
   // });
   
   Lists['twitter-search'] = ListBaseView.extend({
@@ -135,20 +136,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     key: 'facebook',
     className: 'clearfix'
   });
-  // 
-  // RV.Items['twitter-user'] = RV.Items['twitter-id'] = RV.Items['twitter-search'];
-  // 
-  // RV.Items['twitter-image'] = ItemBaseView.extend({
-  //   template : 'image-template',
-  //   className : 'image'
-  // });
-  // 
-  // RV.Items['facebook'] = ItemBaseView.extend({
-  //   template : 'facebook-template',
-  //   className : 'clearfix tweet'
-  // });
-  
-  // related view 
+  // related view
   var RelatedView = Backbone.View.extend({
     template: 'twitter-list-template',
     className: 'clearfix',
@@ -163,13 +151,13 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
         //.on('requestend', this.hideLoding, this );
     },
     show: function(id) {
-      var model;
-      this.$el.addClass('active');      
-      if(model = this.collection.get(id)) {
+      this.$el.addClass('active');
+      var model = this.collection.get(id);
+      if(model) {
         this.render(model);
       } else {
         this.collection.queryById(id);
-      }      
+      }
     },
     hide: function() {
       console.log('hide');
@@ -180,16 +168,16 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       this.render(model);
     },
     // render currentCollection
-    render: function(model) {      
+    render: function(model) {
       this.$el.html(
         this.template({
           models: model.get('results')
         })
       );
-      return this;      
+      return this;
     }
-  });  
-       
+  });
+  
   
   var ContentView = Backbone.View.extend({
     el: '#search-content',
@@ -205,29 +193,29 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     views: { },
     initialize: function() {
       //this.callbacks = $.Callbacks('once');
-      this.changeView('twitter-search');      
+      this.changeView('twitter-search');
       //this.$related = this.$('search-content-related');
       this.relatedView = new RelatedView();
-      // scrollHeight IE                                  
+      // scrollHeight IE
     },
     events: {
       'scroll': 'scrollHandler',
-      'click li': 'loadRelated',
+      'click li': 'loadRelated'
     },
     scrollHandler: function(e) {
       if( this.$el.height() + this.$el.scrollTop() > this.el.scrollHeight - 10 ) {
         this.loadNext();
       }
     },
-    loadRelated: function(e) {    
-      // TODO      
+    loadRelated: function(e) {
+      // TODO
       // if(this.currentView === this.views['twitter-user']) {
       //   //this.callbacks.fire();
       //   console.log('clicked load related');
       //   var $target = $(e.target),
       //     id = $target.addClass('selected').attr('data-model-id-str');
-      //   
-      //   this.relatedView.show(id);      
+      //
+      //   this.relatedView.show(id);
       //   e.stopPropagation();
       //   //$(document).one('click', _.bind(this.relatedView.hide, this.relatedView));
       //   var self = this;
@@ -240,7 +228,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
           //self.relatedView.hide();
           //$target.removeClass('selected');
         //});
-      //}      
+      //}
     },
     loadNext: function() {
       var collection = this.currentCollection();
@@ -256,22 +244,21 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       var firstKey = this.currentKey.split('-')[0];
       this.changeView( firstKey + '-' + secoundKey );
     },
-    changeView: function( key ) {                
+    changeView: function( key ) {
       if( this.views[key] ) {
-        this.currentView = this.views[key];                  
-      } else {                                                            
-        var targetView = Lists[key],
-          targetCollection = Collections[key];
+        this.currentView = this.views[key];
+      } else {
+        var TargetView = Lists[key],
+          TargetCollection = Collections[key];
 
-        if( !targetView || !targetCollection) {
+        if( !TargetView || !TargetCollection) {
           throw new Error( 'the key is invalid : ' + key );
-          return;
-        } 
-                               
-        this.currentView = this.views[key] = new targetView({
-          collection : new targetCollection()
-        });                    
-      }                                
+        }
+        
+        this.currentView = this.views[key] = new TargetView({
+          collection : new TargetCollection()
+        });
+      }
       this.currentKey = key;
       this.currentView.$el
         .addClass('active')
@@ -288,8 +275,8 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     getInstance: function() {
       if(!_contentView) {
         _contentView = new ContentView();
-      } 
+      }
       return _contentView;
     }
   };
-});  
+});

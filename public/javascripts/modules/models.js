@@ -13,7 +13,7 @@ define(function() {
       type: 'twitter'
     }
   });
-          
+  
   M.TwitterImageModel = Backbone.Model.extend({
     type : 'image',
     defaults: {
@@ -27,9 +27,9 @@ define(function() {
       type: 'facebook'
     }
   });
-
   
-  C.QueryCollection = Backbone.Collection.extend({           
+  
+  C.QueryCollection = Backbone.Collection.extend({
     url : function() {
       if( this.isPaging ) {
         return this.nextUrl + '&callback=?';
@@ -39,8 +39,8 @@ define(function() {
     params : null,
     queryKey : 'q',
     toJSONWithCid: function() {
-      return this.map(function(model){         
-        return (model.toJSON().cid = model.cid);         
+      return this.map(function(model){
+        return (model.toJSON().cid = model.cid);
       });
     },
     _queryString : function(str) {
@@ -48,21 +48,21 @@ define(function() {
         return this.params[this.queryKey];
       }
       this.params[this.queryKey] = str;
-    },          
+    },
     query : function(queryString) {
       var q = this._queryString();
       if(!queryString) {
         return q;
-      }                
+      }
       this.isPaging = false;
       if( q !== queryString && queryString.length > 0 && queryString.length < 50 ) {
         this._queryString( queryString );
         this.isRequesting(true);
         this.fetch();
-      }                                                                
-    },         
+      }
+    },
     queryNext : function() {
-     if( this.nextUrl && !this.isRequesting() ) {                     
+     if( this.nextUrl && !this.isRequesting() ) {
        this.isPaging = true;
        this.isRequesting(true);
        this.fetch({
@@ -84,15 +84,15 @@ define(function() {
         this.trigger('requeststart');
       } else {
         this.trigger('requestend');
-      }                                
+      }
     },
     nextUrl : undefined,
     hasNext : function() {
-      return !!this.nextUrl;                        
-    } 
+      return !!this.nextUrl;
+    }
   });
   
-  C['twitter-search'] = C.QueryCollection.extend({          
+  C['twitter-search'] = C.QueryCollection.extend({
     model : M.TwitterModel,
     defaultUrl : "http://search.twitter.com/search.json",
     params : {
@@ -121,11 +121,11 @@ define(function() {
           text: model.text,
           profile_image_url: model.profile_image_url
         };
-      });;
+      });
     }
   });
   
-  C['twitter-user'] = C.QueryCollection.extend({            
+  C['twitter-user'] = C.QueryCollection.extend({
     model : M.TwitterModel,
     initialize : function() {
       this.on('reset', function() {
@@ -146,16 +146,16 @@ define(function() {
       if( this.timeoutId ) {
         clearTimeout(this.timeoutId);
         this.timeoutId = undefined;
-      }                
+      }
       
       // if Paging, remove first tweet
       if( this.isPaging ) {
         response.shift();
       }
       
-      var lastId = _.last( response )['id_str'];      
+      var lastId = _.last( response )['id_str'];
       this.nextUrl = this.defaultUrl + '?' + $.param( _.extend({ max_id : lastId }, this.params) );
-                      
+      
       return _.map(response, function(model) {
         return {
           id_str: model.id_str,
@@ -180,7 +180,7 @@ define(function() {
   
   // related collection is differenct from other collections
   // reset models when called clear method
-  // can handle multiple request   
+  // can handle multiple request
   C['twitter-related'] = Backbone.Collection.extend({
     model: M.TwitterModel,
     // offical page use https://api.twitter.com/1/related_results/show/:id?enclude_entities=1
@@ -192,20 +192,20 @@ define(function() {
     },
     initialize: function() {
       this._isCleared = false;
-    },     
+    },
     clear: function() {
       this._isCleared = true;
     },
     url: function() {
       return this.defaultUrl + '?' + $.param(this.params) + '&callback=?';
-    },        
+    },
     queryById : function(id) {
       if(!id) {
         return;
-      }      
+      }
       this.params.id = '' + id;
       var options = { id: id };
-      this._isCleared || (options.add = true);      
+      this._isCleared || (options.add = true);
       return this.fetch(options);
     },
     // adding callback to deffered object from fetch call may be better approach
@@ -231,12 +231,10 @@ define(function() {
             profile_image_url: value.profile_image_url
           };
         });
-        console.log('ret');
-        console.dir( ret );
         return ret;
       }
       return [];
-    }         
+    }
   });
   
   C['twitter-id'] = C.QueryCollection.extend({
@@ -247,16 +245,16 @@ define(function() {
       include_entities: true
     },
     queryKey : 'id',
-    _parse : function( response ) {            
+    _parse : function( response ) {
       return  [{
         text : response.text,
         profile_image_url : response.user.profile_image_url,
-        from_user : response.user.screen_name 
+        from_user : response.user.screen_name
       }];
     }
   });
   
-  C['twitter-image'] = C.QueryCollection.extend({          
+  C['twitter-image'] = C.QueryCollection.extend({
     model : M.TwitterImageModel,
     defaultUrl : 'http://otter.topsy.com/searchdate.json',
     params : {
@@ -265,24 +263,23 @@ define(function() {
       perpage : 20
     },
     _parse : function( response ) {
-      var response = response.response,
-        models = response.list;
-      console.dir( response );
-      var nextOffset = response['last_offset'];
-      if( nextOffset !== response['offset'] ) {
-        this.nextUrl = this.defaultUrl + '?' + $.param( _.extend({ offset : nextOffset }, this.params) );                        
+      var res = response.response,
+        models = res.list;
+      
+      var nextOffset = res['last_offset'];
+      if( nextOffset !== res['offset'] ) {
+        this.nextUrl = this.defaultUrl + '?' + $.param( _.extend({ offset : nextOffset }, this.params) );
       } else {
         this.nextUrl = undefined;
-      }              
-      return _.map(response.response.list, function(model) {
-        return {
-          
-        };
+      }
+      return _.map(res.list, function(model) {
+        // TODO
+        return {};
       });
     }
   });
   // status video sort should be done by view.
-  C['facebook'] = C.QueryCollection.extend({    
+  C['facebook'] = C.QueryCollection.extend({
     model: M.FacebookModel,
     defaultUrl: 'https://graph.facebook.com/search',
     params: {
@@ -291,11 +288,11 @@ define(function() {
       q : '',
       offset : 1
     },
-    _parse: function( response ) {                  
+    _parse: function( response ) {
       if( response.paging && response.paging.next ) {
         this.nextUrl = response.paging.next;
-      } 
-        
+      }
+      
       var models = [ ],
         typeMap = {
           status: 1,
@@ -306,7 +303,7 @@ define(function() {
         if(typeMap[model.type]) {
           var ret = {
             id_str: model.id,
-            text: model.message,          
+            text: model.message,
             from_user: model.from.name,
             from_id: model.from.id,
             profile_image_url: 'https://graph.facebook.com/'+ model.from.id +'/picture',
