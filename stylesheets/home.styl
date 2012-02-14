@@ -32,13 +32,13 @@ header-height = 0px
 
   
 right-w = 520px  
-#content  
+#content
   #left-column
     position absolute
     top 0
     left 0
     bottom 0
-    right right-w    
+    right right-w
   #right-column
     position absolute
     width right-w
@@ -47,7 +47,7 @@ right-w = 520px
     right 0
     
     
-#article    
+#article
   margin 0
   padding 0
   background #D4D4D4
@@ -56,7 +56,7 @@ right-w = 520px
   left 0
   bottom 0  
   width 100%
-  overflow auto    
+  overflow auto
   input#header-input
     font-size 2em
   textarea#description-input
@@ -68,7 +68,7 @@ right-w = 520px
   #article-list
     margin 0
     padding 0
-    position relative    
+    position relative
     
     
 
@@ -109,7 +109,7 @@ li.article-item
     position absolute
     bottom -20px
     width 100%
-    line-height 20px            
+    line-height 20px
     opacity 0
     background #491B99
     &:hover
@@ -216,30 +216,28 @@ li.article-item
         max-height 120px
         display block
 
-
-li.tweet
+li.search-item
   display block
   list-style none
   border 1px solid #D2D2D2
   border-radius(4px)
   margin 12px 0
-  padding 0      
+  padding 0
   a
     float left
     margin 10px
-  .tweet-user
+  .user,
+  .title
+    background none
     font-weight bold
     font-size 1.1em
     margin 4px 0 2px 4px
-  .tweet-text
+  .text,
+  .description
     margin 0 8px 8px 8px
 
-// article item components
-
-.text
-  background #D2D2D2
-  
-  
+//.text
+//background #D2D2D2
   
 .button
   border-radius(9px)

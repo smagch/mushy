@@ -7,10 +7,12 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
   var ListBaseView = Backbone.View.extend({
     prefix : 'search-content',
     key : undefined,
+    className: 'clearfix',
     //itemClass : undefined,
     initialize : function( options ) {
       this.template = Util.templates[this.template];
-      this.setElement( '#' + this.prefix + '-' + this.key );
+      var id = '#' + this.prefix + '-' + this.key;
+      this.setElement( id );
       if( !this.key || !this.$el) {
           throw new Error('key :' + this.key + ' is invalid');
       }
@@ -20,8 +22,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
         .on('remove', this.removeItem, this )
         .on('requeststart', this.showLoding, this )
         .on('requestend', this.hideLoding, this );
-        
-      //this.itemClass = Items[this.key];
+      
     },
     showLoding : function() {
       this.$el.addClass('loding');
@@ -29,10 +30,6 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     hideLoding : function() {
       this.$el.removeClass('loding');
     },
-    // createItem : function( model ) {
-    //   var view = new this.itemClass({ model : model });
-    //   this.$el.append( view.render().el );
-    // },
     addItem : function( data ) {
       var models = data.toJSON();
       if(!_.isArray(models)) {
@@ -43,28 +40,14 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
           models: models
         })
       );
-      // if( _.isArray( data ) ) {
-      //   _.each( model, this.createItem, this );
-      // } else {
-      //   this.createItem( data );
-      // }
-    },
-    getChildAt : function(index) {
-      return this.$el.children(':nth-child('+ (index+1) + ')');
     },
     removeItem : function( model, collection ) {
-      //var id = model.cid;
-      //this.$('li[id='+ id + ']').remove();
-      //var index = collection.indexOf(model);
-      //console.log('index : ' + index);
-      // TODO how to smartly remove item
+      // TODO remove item smarter way
       this.render();
-      //this.getChildAt(index).remove();
     },
     render : function () {
       this.$el.empty();
       if( this.collection.length ) {
-        //this.collection.each( this.createItem, this );
         this.$el.html(
           this.template({
             models: this.collection.toJSON()
@@ -79,39 +62,34 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
   });
   
   Lists['twitter-search'] = ListBaseView.extend({
-    template: 'twitter-list-template',
+    template: 'twitter-search-template',
     key: 'twitter-search',
     className: 'clearfix'
   });
   
   Lists['twitter-user'] =  ListBaseView.extend({
-    template: 'twitter-list-template',
-    key: 'twitter-user',
-    className: 'clearfix'
+    template: 'twitter-search-template',
+    key: 'twitter-user'
   });
   
   Lists['twitter-id'] =  ListBaseView.extend({
-    template: 'twitter-list-template',
-    key: 'twitter-id',
-    className: 'clearfix'
+    template: 'twitter-search-template',
+    key: 'twitter-id'
   });
   
   Lists['twitter-image'] = ListBaseView.extend({
-    template: 'image-list-template',
-    className: 'clearfix',
+    template: 'image-search-template',
     key: 'twitter-image'
   });
   
   Lists['facebook'] = ListBaseView.extend({
-    template: 'facebook-list-template',
-    key: 'facebook',
-    className: 'clearfix'
+    template: 'facebook-search-template',
+    key: 'facebook'
   });
   
   Lists['youtube'] = ListBaseView.extend({
-    template: 'youtube-list-template',
-    key: 'youtube-search',
-    className: 'clearfix'
+    template: 'youtube-search-template',
+    key: 'youtube-search'
   });
   
   // related view
@@ -185,7 +163,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       }
     },
     loadRelated: function(e) {
-      // TODO
+      // TODO where to put related content
       // if(this.currentView === this.views['twitter-user']) {
       //   //this.callbacks.fire();
       //   console.log('clicked load related');

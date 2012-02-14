@@ -34,30 +34,37 @@
         ul#search-content-twitter-image initial image
         ul#search-content-facebook initial facebook
         ul#search-content-youtube-search initial youtube
-script(id='youtube-list-template', type='text/template')
+script(id='youtube-search-template', type='text/template')
   | <% _.each(models, function(model) { %>
-  |   <li class='youtube clearfix' data-model-id-str='<%= model.id %>' >
-  |   <img src='<%= model.thumbnail_s %>'>
-  | <% }); %>
-script(id='twitter-list-template', type='text/template')
-  | <% _.each(models, function(model) { %>
-  |   <li class='tweet clearfix' data-model-id-str='<%= model.id_str %>'>
-  |     <a href='http://twitter.com/<%= model.from_user %>' >
-  |       <img src=<%= model.profile_image_url %> >
+  |   <li class='search-item clearfix' data-model-id-str='<%= model.id %>' >
+  |     <a href=''>
+  |       <img src=<%= model.thumbnail_s %> >
   |     </a>
-  |     <div class='tweet-user'><%=model.from_user%></div>
-  |     <div class='tweet-text'><%= model.text %></div>
+  |     <div class='title'><%= model.title %></div>
+  |     <div class='description'><%= model.description %></div>
   |   </li>
   | <% }); %>
-script(id='facebook-list-template', type='text/template')
+script(id='twitter-search-template', type='text/template')
   | <% _.each(models, function(model) { %>
-  |   <a href='' >
-  |     <img src=<%= model.profile_image_url %> >
-  |   </a>
-  |   <div class='tweet-user'><%= model.from_user %></div>
-  |   <div class='tweet-text'><%= model.text %></div>
+  |   <li class='search-item clearfix' data-model-id-str='<%= model.id_str %>'>
+  |     <a href='http://twitter.com/<%= model.from_user %>'>
+  |       <img src=<%= model.profile_image_url %> >
+  |     </a>
+  |     <div class='user'><%=model.from_user%></div>
+  |     <div class='text'><%= model.text %></div>
+  |   </li>
   | <% }); %>
-script(id='image-list-template', type='text/template')
+script(id='facebook-search-template', type='text/template')
+  | <% _.each(models, function(model) { %>
+  |   <li class='search-item clearfix'>
+  |     <a href=''>
+  |       <img src=<%= model.profile_image_url %> >
+  |     </a>
+  |     <div class='user'><%= model.from_user %></div>
+  |     <div class='text'><%= model.text %></div>
+  |   </li>
+  | <% }); %>
+script(id='image-search-template', type='text/template')
   | <% _.each(models, function(model) { %>
   |   <div>
   |     <img src='<%= model.small_thumbnail %>' >
@@ -92,23 +99,7 @@ script(id='twitter-quote-template', type='text/template')
   |   <div class='tweet-text'><%= model.text %></div>
   |   <a href='http://twitter.com/<%= model.from_user %>' >
   |       <img src=<%= model.profile_image_url %> >
-  |   </a>   
-  | </div>
-script(id='twitter-template', type='text/template')
-  | <a href='http://twitter.com/<%= model.from_user %>' >
-  |   <img src=<%= model.profile_image_url %> >
-  | </a>
-  | <div class='tweet-user'><%=model.from_user%></div>
-  | <div class='tweet-text'><%= model.text %></div>
-script(id='facebook-template', type='text/template')        
-  | <a href='' >
-  |   <img src=<%= model.profile_image_url %> >
-  | </a>
-  | <div class='tweet-user'><%= model.from_user %></div>
-  | <div class='tweet-text'><%= model.text %></div>
-script(id='image-template', type='text/template')
-  | <div>
-  |   <img src='<%= model.small_thumbnail %>' >
+  |   </a>
   | </div>
 script(src='/javascripts/libs/jquery-1.7.1.js')
 script(src='/javascripts/libs/jquery-ui-1.8.17.custom.min.js')

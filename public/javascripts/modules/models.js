@@ -302,7 +302,7 @@ define(function() {
       q: '',
       v: 2,
       alt: 'jsonc',
-      'max-results': 10
+      'max-results': 25
     },
     _parse: function(response) {
       var data = response.data;
