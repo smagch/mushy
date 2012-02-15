@@ -11,7 +11,8 @@ script
     return '' + val;
   });
   console.dir(obj);
-  (function(){      
+  (function(){
+    // TODO use module/models.js
     var currentModel;
     // $.when($.ajax('/json/youtube.json')).done(function(ret) {
     //   console.log('youtube');
@@ -42,7 +43,7 @@ script
       currentModel = ret;
     });
     //
-    $.when($.getJSON('http://gdata.youtube.com/feeds/api/videos?q=tokido&alt=json&max-results=30&format=5&callback=?') ).done(function(ret) {
+    $.when($.getJSON('http://gdata.youtube.com/feeds/api/videos?v=2&q=tokido&alt=jsonc&callback=?') ).done(function(ret) {
       console.log('youtube');
       console.dir( ret );
       currentModel = ret;
