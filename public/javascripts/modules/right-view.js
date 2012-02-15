@@ -133,6 +133,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     }
   });
   
+
   
   var ContentView = Backbone.View.extend({
     el: '#search-content',
@@ -224,14 +225,65 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     }
   });
   
+  var RightView = Backbone.View.extend({
+    el: '#search',
+    initialize: function() {
+      this.contentView = new ContentView();
+      this.contentView
+        .on('viewchange', this.viewChangeHandler, this );
+      
+      this.$searchInput = $('#search-input');
+      //$('#search-tab').tabs()
+        //.on('tabselect', _.bind(this.tabSelectHandler, this))
+      $('#search-tab').tabs();
+    },
+    events : {
+      'keyup #search-input': 'keyupHandler',
+      'tabsselect #search-tab': 'tabSelectHandler',
+      'click #search-tab span.button': 'categoryClickHandler'
+    },
+    tabSelectHandler: function(e, ui) {
+      var key = [ ],
+         secondKey;
+       // TODO write more nicely
+       key.push(ui.panel.id.split('-')[2]);
+       secondKey = $( ui.panel ).children('span.selected').text().replace(/\s+/g, '');
+       if( secondKey !== '' ) {
+         key.push( secondKey );
+       }
+       this.contentView.changeView( key.join('-') );
+    },
+    categoryClickHandler: function(e) {
+      var category =
+        $( e.target )
+          .addClass('selected')
+          .siblings('.selected')
+            .removeClass('selected')
+            .end()
+          .text().replace(/\s+/g, '');
+      this.contentView.changeCategory( category );
+    },
+    keyupHandler : function( e ) {
+      if( e.keyCode === 13 ) {
+        this.viewChangeHandler();
+      }
+    },
+    viewChangeHandler : function(e) {
+      var val = this.$searchInput.val();
+      if( val !== '' ) {
+        this.contentView.doQuery(val);
+      }
+    }
+  });
+  
   // public methods
-  var _contentView;
+  var rightView;
   return {
     getInstance: function() {
-      if(!_contentView) {
-        _contentView = new ContentView();
+      if(!rightView) {
+        rightView = new RightView();
       }
-      return _contentView;
+      return rightView;
     }
   };
 });
