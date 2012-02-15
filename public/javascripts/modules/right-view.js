@@ -242,6 +242,9 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       'tabsselect #search-tab': 'tabSelectHandler',
       'click #search-tab span.button': 'categoryClickHandler'
     },
+    currentCollection: function() {
+      return this.contentView.currentCollection();
+    },
     tabSelectHandler: function(e, ui) {
       var key = [ ],
          secondKey;

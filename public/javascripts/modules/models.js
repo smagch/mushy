@@ -323,7 +323,7 @@ define(function() {
           id: model.id,
           thumbnail_s: model.thumbnail.sqDefault,
           thumbnail_b: model.thumbnail.hqDefault,
-          player: model.player['default']
+          url: model.player['default']
         };
       });
     }

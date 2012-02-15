@@ -93,7 +93,7 @@ script(id='text-article-template', type='text/template')
   | </div>
 script(id='youtube-article-template', type='text/template')
   | <div class='clearfix'>
-  |   
+  |   {{{ embedYoutube this }}}
   | </div>
 script(id='unknown-template', type='text/template')
   | <p>unknown key : {{ key }}</p>
@@ -105,4 +105,5 @@ script(src='/javascripts/sortive.js')
 script(src='/javascripts/libs/marked.js')
 script(src='/javascripts/libs/jquery.autosize.js')
 script(src='/javascripts/libs/handlebars-1.0.0.beta.6.js')
+script(src='/javascripts/libs/swfobject.js')
 script(src='/javascripts/libs/require.js', data-main='/javascripts/main.js')
