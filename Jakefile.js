@@ -21,7 +21,9 @@ var config = {
   //'dest': 'public/javascripts/MR.js',
   //'dest-min': 'public/javascripts/MR.min.js',  
   jshint: {
-    predef: [ "_", "$", "Backbone", "jQuery", 'marked', 'require', 'define', 'Handlebars'],
+    predef: [ "_", "$", "Backbone", "jQuery", 'require', 'define',
+      'marked', 'Handlebars', 'swfobject'
+    ],
     // Environments
     browser: true,
     forin: false,
