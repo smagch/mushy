@@ -3,36 +3,16 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
   
   var Lists = {},
     Collections = Models.Collections;
-    //Items = {},
-  //ItemBaseView = U.ItemBaseView,
-  
-  
-  // RV.Items['twitter-search'] = ItemBaseView.extend({
-  //   template : 'twitter-template',
-  //   className : 'clearfix tweet'
-  // });
-  //
-  // RV.Items['twitter-user'] = RV.Items['twitter-id'] = RV.Items['twitter-search'];
-  //
-  // RV.Items['twitter-image'] = ItemBaseView.extend({
-  //   template : 'image-template',
-  //   className : 'image'
-  // });
-  //
-  // RV.Items['facebook'] = ItemBaseView.extend({
-  //   template : 'facebook-template',
-  //   className : 'clearfix tweet'
-  // });
-  
-
     
   var ListBaseView = Backbone.View.extend({
     prefix : 'search-content',
     key : undefined,
+    className: 'clearfix',
     //itemClass : undefined,
     initialize : function( options ) {
       this.template = Util.templates[this.template];
-      this.setElement( '#' + this.prefix + '-' + this.key );
+      var id = '#' + this.prefix + '-' + this.key;
+      this.setElement( id );
       if( !this.key || !this.$el) {
           throw new Error('key :' + this.key + ' is invalid');
       }
@@ -42,8 +22,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
         .on('remove', this.removeItem, this )
         .on('requeststart', this.showLoding, this )
         .on('requestend', this.hideLoding, this );
-        
-      //this.itemClass = Items[this.key];
+      
     },
     showLoding : function() {
       this.$el.addClass('loding');
@@ -51,10 +30,6 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     hideLoding : function() {
       this.$el.removeClass('loding');
     },
-    // createItem : function( model ) {
-    //   var view = new this.itemClass({ model : model });
-    //   this.$el.append( view.render().el );
-    // },
     addItem : function( data ) {
       var models = data.toJSON();
       if(!_.isArray(models)) {
@@ -65,28 +40,14 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
           models: models
         })
       );
-      // if( _.isArray( data ) ) {
-      //   _.each( model, this.createItem, this );
-      // } else {
-      //   this.createItem( data );
-      // }
-    },
-    getChildAt : function(index) {
-      return this.$el.children(':nth-child('+ (index+1) + ')');
     },
     removeItem : function( model, collection ) {
-      //var id = model.cid;
-      //this.$('li[id='+ id + ']').remove();
-      //var index = collection.indexOf(model);
-      //console.log('index : ' + index);
-      // TODO how to smartly remove item
+      // TODO remove item smarter way
       this.render();
-      //this.getChildAt(index).remove();
     },
     render : function () {
       this.$el.empty();
       if( this.collection.length ) {
-        //this.collection.each( this.createItem, this );
         this.$el.html(
           this.template({
             models: this.collection.toJSON()
@@ -100,41 +61,37 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     }
   });
   
-  // _.each( RV.Items, function( item, key ) {
-  //   RV.Lists[key] = RV.ListBaseView.extend({
-  //     key : key
-  //   });
-  // });
-  
   Lists['twitter-search'] = ListBaseView.extend({
-    template: 'twitter-list-template',
+    template: 'twitter-search-template',
     key: 'twitter-search',
     className: 'clearfix'
   });
   
   Lists['twitter-user'] =  ListBaseView.extend({
-    template: 'twitter-list-template',
-    key: 'twitter-user',
-    className: 'clearfix'
+    template: 'twitter-search-template',
+    key: 'twitter-user'
   });
   
   Lists['twitter-id'] =  ListBaseView.extend({
-    template: 'twitter-list-template',
-    key: 'twitter-id',
-    className: 'clearfix'
+    template: 'twitter-search-template',
+    key: 'twitter-id'
   });
   
   Lists['twitter-image'] = ListBaseView.extend({
-    template: 'image-list-template',
-    className: 'clearfix',
+    template: 'image-search-template',
     key: 'twitter-image'
   });
   
   Lists['facebook'] = ListBaseView.extend({
-    template: 'facebook-list-template',
-    key: 'facebook',
-    className: 'clearfix'
+    template: 'facebook-search-template',
+    key: 'facebook'
   });
+  
+  Lists['youtube'] = ListBaseView.extend({
+    template: 'youtube-search-template',
+    key: 'youtube-search'
+  });
+  
   // related view
   var RelatedView = Backbone.View.extend({
     template: 'twitter-list-template',
@@ -176,6 +133,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     }
   });
   
+
   
   var ContentView = Backbone.View.extend({
     el: '#search-content',
@@ -206,7 +164,7 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
       }
     },
     loadRelated: function(e) {
-      // TODO
+      // TODO where to put related content
       // if(this.currentView === this.views['twitter-user']) {
       //   //this.callbacks.fire();
       //   console.log('clicked load related');
@@ -267,14 +225,68 @@ define(['modules/models', 'modules/util'], function(Models, Util) {
     }
   });
   
+  var RightView = Backbone.View.extend({
+    el: '#search',
+    initialize: function() {
+      this.contentView = new ContentView();
+      this.contentView
+        .on('viewchange', this.viewChangeHandler, this );
+      
+      this.$searchInput = $('#search-input');
+      //$('#search-tab').tabs()
+        //.on('tabselect', _.bind(this.tabSelectHandler, this))
+      $('#search-tab').tabs();
+    },
+    events : {
+      'keyup #search-input': 'keyupHandler',
+      'tabsselect #search-tab': 'tabSelectHandler',
+      'click #search-tab span.button': 'categoryClickHandler'
+    },
+    currentCollection: function() {
+      return this.contentView.currentCollection();
+    },
+    tabSelectHandler: function(e, ui) {
+      var key = [ ],
+         secondKey;
+       // TODO write more nicely
+       key.push(ui.panel.id.split('-')[2]);
+       secondKey = $( ui.panel ).children('span.selected').text().replace(/\s+/g, '');
+       if( secondKey !== '' ) {
+         key.push( secondKey );
+       }
+       this.contentView.changeView( key.join('-') );
+    },
+    categoryClickHandler: function(e) {
+      var category =
+        $( e.target )
+          .addClass('selected')
+          .siblings('.selected')
+            .removeClass('selected')
+            .end()
+          .text().replace(/\s+/g, '');
+      this.contentView.changeCategory( category );
+    },
+    keyupHandler : function( e ) {
+      if( e.keyCode === 13 ) {
+        this.viewChangeHandler();
+      }
+    },
+    viewChangeHandler : function(e) {
+      var val = this.$searchInput.val();
+      if( val !== '' ) {
+        this.contentView.doQuery(val);
+      }
+    }
+  });
+  
   // public methods
-  var _contentView;
+  var rightView;
   return {
     getInstance: function() {
-      if(!_contentView) {
-        _contentView = new ContentView();
+      if(!rightView) {
+        rightView = new RightView();
       }
-      return _contentView;
+      return rightView;
     }
   };
 });

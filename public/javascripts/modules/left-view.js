@@ -198,7 +198,6 @@ define(['modules/util'], function(U) {
       //                 this.collection.add(model);
     },
     addItem: function(model) {
-      
       var index = this.collection.indexOf(model),
         beforeCid = this.collection.at(index-1).cid,
         $beforeEl = this.$articleItems.find('[data-model-cid='+beforeCid+']'),
@@ -207,6 +206,7 @@ define(['modules/util'], function(U) {
         throw new Error('no such cid element: ' + beforeCid);
       }
       $beforeEl.after(element);
+      this.updateCache();
     },
     render: function() {
       var obj = this.collection.toJSONWithCid();

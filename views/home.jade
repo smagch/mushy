@@ -9,97 +9,94 @@
         textarea#article-editor
         ol#article-list
     #right-column
-      #search-tab
-        ul                
-          li
-            a(href='#search-categories-twitter') twitter
-          li
-            a(href='#search-categories-facebook') facebook
-        #search-categories-twitter
-          span.button.selected search
-          span.button image
-          span.button user 
-          span.button id         
-        #search-categories-facebook
-      input#search-input
-      #search-content
-        ul#search-content-related initial related
-        ul#search-content-twitter-search.active initial search
-        ul#search-content-twitter-user initial user
-        ul#search-content-twitter-id initial id
-        ul#search-content-twitter-image initial image
-        ul#search-content-facebook initial facebook
-script(id='twitter-list-template', type='text/template')
-  | <% _.each(models, function(model) { %>
-  |   <li class='tweet clearfix' data-model-id-str='<%= model.id_str %>'>
-  |     <a href='http://twitter.com/<%= model.from_user %>' >
-  |       <img src=<%= model.profile_image_url %> >
+      #search
+        #search-tab
+          ul
+            li
+              a(href='#search-categories-twitter') twitter
+            li
+              a(href='#search-categories-facebook') facebook
+            li
+              a(href='#search-categories-youtube') youtube
+          #search-categories-twitter
+            span.button.selected search
+            span.button image
+            span.button user 
+            span.button id         
+          #search-categories-facebook
+          #search-categories-youtube
+            span.button search
+        input#search-input
+        #search-content
+          ul#search-content-related initial related
+          ul#search-content-twitter-search.active initial search
+          ul#search-content-twitter-user initial user
+          ul#search-content-twitter-id initial id
+          ul#search-content-twitter-image initial image
+          ul#search-content-facebook initial facebook
+          ul#search-content-youtube-search initial youtube
+script(id='youtube-search-template', type='text/template')
+  | {{# models }}
+  |   <li class='search-item clearfix' data-model-id-str={{ id }} >
+  |     <a href=''>
+  |       <img src={{ thumbnail_s }}>
   |     </a>
-  |     <div class='tweet-user'><%=model.from_user%></div>
-  |     <div class='tweet-text'><%= model.text %></div>
+  |     <div class='title'>{{ title }}</div>
+  |     <div class='description'>{{ description }}</div>
   |   </li>
-  | <% }); %>
-script(id='facebook-list-template', type='text/template')
-  | <% _.each(models, function(model) { %>
-  |   <a href='' >
-  |     <img src=<%= model.profile_image_url %> >
-  |   </a>
-  |   <div class='tweet-user'><%= model.from_user %></div>
-  |   <div class='tweet-text'><%= model.text %></div>
-  | <% }); %>
-script(id='image-list-template', type='text/template')
-  | <% _.each(models, function(model) { %>
+  | {{/ models }}
+script(id='twitter-search-template', type='text/template')
+  | {{# models }}
+  |   <li class='search-item clearfix' data-model-id-str={{ id_str }} >
+  |     <a href='http://twitter.com/{{ from_user }}'>
+  |       <img src={{ profile_image_url }} >
+  |     </a>
+  |     <div class='user'>{{ from_user }}</div>
+  |     <div class='text'>{{ text }}</div>
+  |   </li>
+  | {{/ models }}
+script(id='facebook-search-template', type='text/template')
+  | {{# models }}
+  |   <li class='search-item clearfix'>
+  |     <a href=''>
+  |       <img src={{ profile_image_url }} >
+  |     </a>
+  |     <div class='user'>{{ from_user }}</div>
+  |     <div class='text'>{{ text }}</div>
+  |   </li>
+  | {{/ models }}
+script(id='image-search-template', type='text/template')
+  | {{# models }}
   |   <div>
-  |     <img src='<%= model.small_thumbnail %>' >
+  |     <img src={{ small_thumbnail }} >
   |   </div>
-  | <% }); %>
+  | {{/ models }}
 script(id='quote-list-template', type='text/template')
-  | <% _.each(models, function(model) { %>
-  |   <li class='article-item clearfix twitter-quote' data-model-cid='<%= model.cid %>'>
+  | {{# models }}
+  |   <li class='article-item clearfix twitter-quote' data-model-cid='{{ cid }}'>
   |     <span class='delete-button' >x</span>
   |     <span class='add-button' >+</span>
-  |     <% if(model.type === 'twitter') { %>
-  |       <div class='twitter-quote-content clearfix'>
-  |         <div class='tweet-user'><%= model.from_user %></div>
-  |         <div class='tweet-text'><%= model.text %></div>
-  |         <a href='http://twitter.com/<%= model.from_user %>' >
-  |           <img src=<%= model.profile_image_url %> >
-  |         </a>
-  |       </div>
-  |     <% } else if(model.type === 'text') { %>
-  |       <div class='article-item-text'><%= marked(_.escape(model.text)) %></div>
-  |     <% } else { %>
-  |       <p>unknown type: <%= model.type %><p>
-  |   <% } %>
+  |     {{{ renderArticle this }}}
   |   </li>
-  | <% }); %>
-script(id='text-template', type='text/template')
-  | <span>model.text</span>
-script(id='twitter-quote-template', type='text/template')
-  | <span class='delete-button' >x</span> 
+  | {{/ models }}
+script(id='twitter-article-template', type='text/template')
   | <div class='twitter-quote-content clearfix'>
-  |   <div class='tweet-user'><%= model.from_user %></div>
-  |   <div class='tweet-text'><%= model.text %></div>
-  |   <a href='http://twitter.com/<%= model.from_user %>' >
-  |       <img src=<%= model.profile_image_url %> >
-  |   </a>   
+  |   <div class='tweet-user'>{{ from_user }}</div>
+  |   <div class='tweet-text'>{{ text }}</div>
+  |   <a href='http://twitter.com/{{ from_user }}' >
+  |     <img src={{ profile_image_url }} >
+  |   </a>
   | </div>
-script(id='twitter-template', type='text/template')
-  | <a href='http://twitter.com/<%= model.from_user %>' >
-  |   <img src=<%= model.profile_image_url %> >
-  | </a>
-  | <div class='tweet-user'><%=model.from_user%></div>
-  | <div class='tweet-text'><%= model.text %></div>
-script(id='facebook-template', type='text/template')        
-  | <a href='' >
-  |   <img src=<%= model.profile_image_url %> >
-  | </a>
-  | <div class='tweet-user'><%= model.from_user %></div>
-  | <div class='tweet-text'><%= model.text %></div>
-script(id='image-template', type='text/template')
-  | <div>
-  |   <img src='<%= model.small_thumbnail %>' >
+script(id='text-article-template', type='text/template')
+  | <div class='article-item-text'>
+  |   {{{ markdown text }}}
   | </div>
+script(id='youtube-article-template', type='text/template')
+  | <div class='clearfix'>
+  |   {{{ embedYoutube this }}}
+  | </div>
+script(id='unknown-template', type='text/template')
+  | <p>unknown key : {{ key }}</p>
 script(src='/javascripts/libs/jquery-1.7.1.js')
 script(src='/javascripts/libs/jquery-ui-1.8.17.custom.min.js')
 script(src='/javascripts/libs/underscore.js')
@@ -107,5 +104,6 @@ script(src='/javascripts/libs/backbone.js')
 script(src='/javascripts/sortive.js')
 script(src='/javascripts/libs/marked.js')
 script(src='/javascripts/libs/jquery.autosize.js')
-//script(src='/javascripts/views/home/main.js')
+script(src='/javascripts/libs/handlebars-1.0.0.beta.6.js')
+script(src='/javascripts/libs/swfobject.js')
 script(src='/javascripts/libs/require.js', data-main='/javascripts/main.js')

@@ -4,50 +4,11 @@ define(['modules/left-view', 'modules/right-view', 'modules/util'], function(LV,
   var RightColumn = Backbone.View.extend({
     el : '#right-column',
     currentCollection : function() {
-      return this.contentView.currentCollection();
+      return this.rightView.currentCollection();
     },
     initialize : function () {
-      var content = this.contentView = RV.getInstance();//new RV.ContentView();
-      this.$searchInput = $('#search-input');
-      $('#search-tab').tabs()
-        .on('tabsselect', function(e, ui) {
-          var key = [ ],
-            secondKey;
-          // TODO write more nicely
-          key.push(ui.panel.id.split('-')[2]);
-          secondKey = $( ui.panel ).children('span.selected').text().replace(/\s+/g, '');
-          if( secondKey !== '' ) {
-            key.push( secondKey );
-          }
-          content.changeView( key.join('-') );
-        })
-        .on('click', 'span.button', function(e) {
-          var category =
-            $( e.target )
-              .addClass('selected')
-              .siblings('.selected')
-                .removeClass('selected')
-                .end()
-              .text().replace(/\s+/g, '');
-          content.changeCategory( category );
-        });
-
-        content.on('viewchange', this.viewChangeHandler, this );
-      },
-      events : {
-        'keyup #search-input' : 'keyupHandler'
-      },
-      keyupHandler : function( e ) {
-        if( e.keyCode === 13 ) {
-          this.viewChangeHandler();
-        }
-      },
-      viewChangeHandler : function() {
-        var val = this.$searchInput.val();
-        if( val !== '' ) {
-          this.contentView.doQuery(val);
-        }
-      }
+      this.rightView = RV.getInstance();
+    }
   });
   
   var LeftColumn = Backbone.View.extend({
