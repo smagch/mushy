@@ -9,6 +9,7 @@
     "url": "git@github.com:smagch/mushy.git"
   },
   "main": "server.js",
+  "private": true,
   "engines": {
     "node": "*"
   },
