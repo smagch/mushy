@@ -1,0 +1,18 @@
+{
+  "author": "Shimaguchi Tomoya <smagch@gmail.com>",
+  "name": "mushy",
+  "description": "social mushup application",
+  "version": "0.0.0",
+  "homepage": "https://smagch.github.com/mushy",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:smagch/mushy.git"
+  },
+  "main": "server.js",
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "express": "*"
+  }
+}
