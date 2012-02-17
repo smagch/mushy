@@ -1,3 +1,6 @@
+// learned a lot from StartupDataTrends Jakefile, 
+// thanks you https://github.com/bocoup/StartupDataTrends
+
 var 
   fs = require( "fs" ),
   _ = require( "underscore" ),
@@ -6,6 +9,9 @@ var
   colors = require( "colors" ),
   uglifyjs = require( "uglify-js" ),
   minimatch = require('minimatch'),
+  jade = require('jade'),
+  stylus = require('stylus'),
+  Handlebars = require('handlebars'),
   Buffer = require( "buffer" ).Buffer,  
   dateFormat = require( "dateformat" ),
   cp = require("child_process"),
@@ -15,35 +21,40 @@ var
   child;
   
 var config = {
-  dist: {
-    libs: 'out/libs.js',
-    app: 'out/mushroom.js'
+  "dist": {
+    "libs": "out/libs.js",
+    "scripts": "views/scripts.xml",
+    "app": "out/mushroom.js",
+    "jade": "out/index.html"
   },
-  src: [
-    'public/javascripts/modules/*',
-    'public/javascripts/main.js',
-    'public/javascripts/sortive.js'
+  "src": [
+    "public/javascripts/modules/*",
+    "public/javascripts/main.js",
+    "public/javascripts/sortive.js"
   ],
-  libs: {
-    include: [
-      'public/javascripts/libs/*',
-      'public/javascripts/sortive.js',
+  "libs": {
+    "include": [
+      "public/javascripts/libs/*",
+      "public/javascripts/sortive.js"
     ],
-    // currently doesn't used
-    exclude: [
-      'public/javascripts/libs/jsonselect.js',
-      'public/javascripts/libs/modernizr*',
-      'public/javascripts/libs/popcorn*'
+    "exclude": [
+      "public/javascripts/libs/jsonselect.js",
+      "public/javascripts/libs/modernizr*",
+      "public/javascripts/libs/popcorn*"
     ],
-    // make sure plugin script to load after prioratized script
-    // default 0, using minimatch
-    priorities: {
-      'public/javascripts/libs/jquery-1*.js': 1,
-      'public/javascripts/libs/underscore*.js': 1
+    "priorities": {
+      "public/javascripts/libs/jquery-1*.js": 1,
+      "public/javascripts/libs/underscore*.js": 1,
+      "public/javascripts/libs/require*.js": -1
+    },
+    "attributes": {
+      "public/javascripts/libs/require.js": {
+        "data-main": "/javascripts/main"
+      }
     }
   },
-  //'dest': 'public/javascripts/MR.js',
-  //'dest-min': 'public/javascripts/MR.min.js',  
+  
+  
   jshint: {
     predef: [ "_", "$", "Backbone", "jQuery", 'require', 'define',
       'marked', 'Handlebars', 'swfobject'
@@ -75,24 +86,21 @@ var config = {
   }
 }
 
-function hint( src, path ) {
-  console.log('about to jshint : ' + path.underline);
-  if (jshint( src, config.jshint)) {
-    console.log('ok'.green.bold);
-  } else {
-    console.log('-------fail jshint-------'.red);
-    console.log('jshint.errors.length : '.red + jshint.errors.length + ' length'.red);
-    
-    jshint.errors.forEach(function(e) {
-      if (!e) { return; }
-      var str = e.evidence ? e.evidence.inverse : "";
 
-      str = str.replace( /\t/g, " " ).trim();
-      console.log( path + " [L" + e.line + ":C" + e.character + "] " + e.reason + "\n  " + str );
-    });
-    fail('hint failed!'.red);
-  }
-}
+//_.extend(config, readJSON('build.json'));
+
+
+// function readJSON(filePath) {
+//   console.log('about to read ' + filePath.underline);
+//   try{
+//     var content = readFile(filePath);
+//     return JSON.parse(content);
+//   }catch(e) {
+//     fail(e);
+//   }
+// }
+
+
 
 function readFile(filepath) {
   var src;
@@ -114,32 +122,60 @@ function writeFile(filePath, contents) {
   console.log('ok');
 }
 
+var getLibs = (function(){
+  var libs;
+      
+  return function() {
+    if(libs) {
+      return libs;
+    }
+    
+    var fileLists = new jake.FileList(),
+      priorities = config.libs.priorities;
+      
+    fileLists.include(config.libs.include);
+    fileLists.exclude(config.libs.exclude);
+
+    libs = _.sortBy(fileLists.toArray(), function(path){
+        
+      for(var matcher in priorities) {
+        if(minimatch(path, matcher)) {
+          console.log('match : ' + path.underline);
+          return -priorities[matcher];
+        }
+      }
+      return 0;
+    });
+    
+    return libs;
+  };
+})();
+
+
+function hint( src, path ) {
+  console.log('about to jshint : ' + path.underline);
+  if (jshint( src, config.jshint)) {
+    console.log('ok'.green.bold);
+  } else {
+    console.log('-------fail jshint-------'.red);
+    console.log('jshint.errors.length : '.red + jshint.errors.length + ' length'.red);
+    
+    jshint.errors.forEach(function(e) {
+      if (!e) { return; }
+      var str = e.evidence ? e.evidence.inverse : "";
+
+      str = str.replace( /\t/g, " " ).trim();
+      console.log( path + " [L" + e.line + ":C" + e.character + "] " + e.reason + "\n  " + str );
+    });
+    fail('hint failed!'.red);
+  }
+}
+
 
 desc('Start Test concat and hint');
 task('default', ['hint'], function() {
   console.log('--------------' + 'complete'.green.bold + '--------------' );
 });
-
-desc('test just a test');
-task('test', function() {
-  console.log('about to test');
-  var deps = [ 'hoge', 'foo', 'smagch', '33f', 'fadsf'];
-  var libs = ['jquery'];
-  var priorities = {
-    smagch: 1,
-    foo: 1
-  };
-  function comparator(val) {
-    return - priorities[val] || 0;
-  }
-  var files = new jake.FileList();
-  files.include(deps);
-  files.include(libs);
-  var arr = _.sortBy( files.toArray(), comparator );  
-  console.dir( arr );
-});
-
-
 
 
 
@@ -179,31 +215,66 @@ namespace('build', function() {
   desc('concat libs');
   task('libs', function() {
     console.log('about to concat libs...');
-    var libs = new jake.FileList();
-    libs.include(config.libs.include);
-    libs.exclude(config.libs.exclude);
-    
-    var priorities = config.libs.priorities,
-      arr = _.sortBy(libs.toArray(), function(path){
-        
-      for(var matcher in priorities) {
-        if(minimatch(path, matcher)) {
-          console.log('match : ' + path);
-          return -priorities[matcher];
-        }
-      }
-      return 0;
-    });
-
-    var body = '';
-    arr.forEach(function(path) {
+    // TODO log order
+    var body = '',
+      libs = getLibs();
+      
+    libs.forEach(function(path) {
       console.log('opening : ' + path.underline);      
       var content = readFile(path);
       body += '\n' + content +'\n';
     });
     // after load require.js,, where to ....
     writeFile(config.dist.libs, body);
-    console.log('---concat complete---'.yellow);
+    console.log('---concat complete---'.yellow);            
+  });
+  
+  desc('out put libs to script tag');
+  task('script', function() {
+    console.log('about to export library script tags');
+    var attributes = config.libs.attributes;
+    Handlebars.registerHelper('src', function(src) {
+      var arr = src.split('public');
+      return arr[1];
+    });
+    
+    Handlebars.registerHelper('attributes', function(filePath) {
+      for(var matcher in attributes) {
+        if(minimatch(filePath, matcher)) {
+          var data = attributes[matcher],
+            ret = '';          
+          for(var key in data) {
+            ret += ' ' + key + '="' + data[key] + '" ';
+          }
+          return ret;
+        }
+      }
+      return '';
+    });
+    
+    var libs = getLibs(),
+      temp = '{{# each libs }}' + 
+              '<script src="{{ src this }}" {{{ attributes this }}} ></script>\n' +
+            '{{/ each }}';    
+            
+      template = Handlebars.compile(temp);
+      
+      body = template({
+        libs: libs
+      });
+      
+      console.log('body : \n' + body);
+      writeFile(config.dist.scripts, body);
+  });
+  
+  desc('jade to html')
+  task(function() {
+    
+  });
+  
+  desc('styl to css');
+  task(function() {
+    
   });
 });
 
