@@ -8,8 +8,26 @@ define(['modules/util'], function(U) {
   M['MashUpModel'] = Backbone.Model.extend({
     toJSONWithCid: function() {
       return ( this.toJSON().cid = this.cid );
-    }
+    }// ,
+    //     url: function() {
+    //       var map = {
+    //         twitter: {
+    //           url:'https://api.twitter.com/1/statuses/show.json',
+    //           params: {
+    //             include_entities: 1
+    //             id: 1
+    //           }
+    //         }
+    //       }
+    //       var type = this.get('type');
+    //       
+    //       
+    //       //return map[type]
+    //       return 'https://api.twitter.com/1/statuses/show.json';
+    //     }
   });
+  
+  
     
   C['MashUpCollection'] = Backbone.Collection.extend({
       model: M.MashUpModel,
@@ -19,8 +37,28 @@ define(['modules/util'], function(U) {
           obj.cid = model.cid;
           return obj;
         });
-      }
+      }// ,
+      //       parse: function(response) {
+      //         var map = {
+      //           twitter: '',// ajax call here?
+      //           text: ''
+      //         }
+      //         var fn = map[response.type];
+      //         $.ajax()
+      //         //
+      //         // if type is twitter, 
+      //       },
+      //       sync: function() {
+      //         // only push type and id to server except text
+      //       }
   });
+  // {
+  //   id: response.id_str,
+  //   from_user: response.user.screen_name,
+  //   from_user_name: response.user.name,
+  //   text : response.text,
+  //   profile_image_url : response.user.profile_image_url
+  // }
 
   var ArticleView = Backbone.View.extend({
     el: '#article',
@@ -199,13 +237,20 @@ define(['modules/util'], function(U) {
     },
     addItem: function(model) {
       var index = this.collection.indexOf(model),
+        element = this.template({models: U.toJSONArray(model)});
+      if(index > 0) {
         beforeCid = this.collection.at(index-1).cid,
         $beforeEl = this.$articleItems.find('[data-model-cid='+beforeCid+']'),
-        element = this.template({models: U.toJSONArray(model)});
-      if(!$beforeEl.length) {
-        throw new Error('no such cid element: ' + beforeCid);
+        $beforeEl.after(element);
+        if(!$beforeEl.length) {
+          throw new Error('no such cid element: ' + beforeCid);
+        }
+      } else {
+        this.$articleItems.append(element);
       }
-      $beforeEl.after(element);
+
+
+      
       this.updateCache();
     },
     render: function() {
