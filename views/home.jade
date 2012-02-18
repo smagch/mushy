@@ -47,7 +47,7 @@ script(id='youtube-search-template', type='text/template')
   | {{/ models }}
 script(id='twitter-search-template', type='text/template')
   | {{# models }}
-  |   <li class='search-item clearfix' data-model-id-str={{ id_str }} >
+  |   <li class='search-item clearfix' data-model-id-str={{ id }} >
   |     <a href='http://twitter.com/{{ from_user }}'>
   |       <img src={{ profile_image_url }} >
   |     </a>

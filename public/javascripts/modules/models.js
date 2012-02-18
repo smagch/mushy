@@ -131,7 +131,7 @@ define(function() {
       
       return _.map(response.results, function(model) {
         return {
-          id_str: model.id_str,
+          id: model.id_str,
           from_user: model.from_user,
           from_user_name: model.from_user_name,
           text: model.text,
@@ -240,7 +240,7 @@ define(function() {
         var ret =  _.map(data.results, function(model) {
           var value = model.value;
           return {
-            id_str: value.id_str,
+            id: value.id_str,
             from_user: value.screen_name,
             from_user_name: value.name,
             text: value.text,
@@ -263,9 +263,11 @@ define(function() {
     queryKey : 'id',
     _parse : function( response ) {
       return  [{
+        id: response.id_str,
+        from_user: response.user.screen_name,
+        from_user_name: response.user.name,
         text : response.text,
-        profile_image_url : response.user.profile_image_url,
-        from_user : response.user.screen_name
+        profile_image_url : response.user.profile_image_url
       }];
     }
   });
@@ -352,7 +354,7 @@ define(function() {
       _.each(response.data, function(model) {
         if(typeMap[model.type]) {
           var ret = {
-            id_str: model.id,
+            id: model.id,
             text: model.message,
             from_user: model.from.name,
             from_id: model.from.id,
