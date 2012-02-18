@@ -265,22 +265,44 @@ namespace('build', function() {
       
       console.log('body : \n' + body);
       writeFile(config.dist.scripts, body);
-  });
+      console.log('complete'.yellow);
+  });  
   
   desc('jade to html')
-  task(function() {
+  task('jade', function() {
+    var body = readFile('views/layout.jade'),
+    template = jade.compile(body, {
+      filename: 'views/layout.jade'
+    });
     
+    var output = template({
+      title: 'home',
+      view: 'home',
+      body: 'views/home.jade',
+      scripts: 'scripts.min.xml'
+    });
+    
+    writeFile('out/index.html', output);
+    console.log('complete'.yellow);
   });
   
-  desc('styl to css');
-  task(function() {
-    
+  desc('stylus to css');
+  task('stylus', function() {
+    var str = readFile('stylesheets/home.styl');
+    stylus(str)
+      .import(__dirname + '/stylesheets/mixins')
+      .set('paths', [__dirname + '/stylesheets'])
+      .set('filename', 'out/style.css')
+      .render(function(err, css) {
+        if(err) {
+          fail(err);
+        }
+        console.log('css : ' + css);
+        writeFile('out/home.css', css);
+      });
   });
 });
 
-
-desc('build modules');
-task('')
 
 desc('hint');
 task('hint', function() {
